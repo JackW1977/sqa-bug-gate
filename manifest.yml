@@ -1,0 +1,49 @@
+modules:
+  jira:globalPage:
+    - key: sqa-bug-wizard
+      resource: wizard
+      resolver:
+        function: main-resolver
+      title: New SQA Bug
+      description: Guided wizard for creating SQA-quality bug reports
+
+  jira:issuePanel:
+    - key: sqa-issue-panel
+      resource: panel
+      resolver:
+        function: main-resolver
+      title: SQA Gate Status
+      icon: https://developer.atlassian.com/platform/forge/images/icons/icon.png
+      layout: default
+
+  jira:workflowValidator:
+    - key: sqa-workflow-validator
+      function: workflow-validator
+      description: Enforces SQA bug quality gate before transition to Ready for Triage
+
+  function:
+    - key: main-resolver
+      handler: index.handler
+    - key: workflow-validator
+      handler: index.workflowValidatorHandler
+
+resources:
+  - key: wizard
+    path: static/wizard/build
+    tunnel:
+      port: 3000
+  - key: panel
+    path: static/panel/build
+    tunnel:
+      port: 3001
+
+app:
+  id: ari:cloud:ecosystem::app/TO-BE-REGISTERED
+  name: SQA Bug Gate
+
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+    - read:jira-user
+    - storage:app

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sqa-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "4400", "--directory", "preview"],
+      "port": 4400
+    }
+  ]
+}

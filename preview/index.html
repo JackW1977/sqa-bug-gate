@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQA Bug Gate — UI Preview</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #F4F5F7; }
+    input, select, textarea, button { font-family: inherit; }
+    :root {
+      --blue: #0052CC; --blue-light: #DEEBFF; --blue-dark: #0747A6;
+      --green: #00875A; --green-light: #E3FCEF;
+      --red: #DE350B; --red-light: #FFEBE6; --red-dark: #BF2600;
+      --orange: #FF8B00; --orange-light: #FFFAE6;
+      --gray-50: #F4F5F7; --gray-100: #DFE1E6; --gray-300: #B3BAC5;
+      --gray-500: #5E6C84; --gray-700: #344563; --gray-900: #172B4D;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+// ─── Data ────────────────────────────────────────────────────────────────────
+
+const CATEGORIES = [
+  { value: "R&C",   label: "R&C – Robotic & Camera",           subs: ["BC (Bronchoscope)"] },
+  { value: "RA",    label: "RA – Robot Arm",                    subs: ["Robot Arm"] },
+  { value: "WC",    label: "WC – Wire Controller",              subs: ["Wire Controller"] },
+  { value: "TPS",   label: "TPS – Treatment Planning System",   subs: ["WF (Workflow)"] },
+  { value: "PL",    label: "PL – Planning",                     subs: ["Planning"] },
+  { value: "SG",    label: "SG – Segmentation",                 subs: ["Segmentation"] },
+  { value: "TDS",   label: "TDS – Treatment Delivery System",   subs: ["IM (Imaging)"] },
+  { value: "WF",    label: "WF – Workflow",                     subs: ["Workflow"] },
+  { value: "LOG",   label: "LOG – Logging / Diagnostics",       subs: ["N/A"] },
+  { value: "UI/UX", label: "UI/UX – User Interface",            subs: ["N/A"] },
+];
+
+const WIZARD_STEPS = [
+  "Project", "Summary", "Environment", "Preconditions",
+  "Steps to Reproduce", "Expected vs Actual", "Impact",
+  "Evidence", "Traceability", "Classification",
+  "Duplicate Search", "Review & Submit"
+];
+
+const INITIAL = {
+  projectKey: "", category: "", subCategory: "", problemStatement: "",
+  conditionClause: "", softwareVersion: "", branchRelease: "", buildNumber: "",
+  hardwareConfig: "", mode: "", unknownReason: "",
+  preconditions: "", noPreconditions: false, noPreconditionsExp: "",
+  initialState: "", steps: ["", ""], reproducibility: "", intermittentNotes: "",
+  expectedBehavior: "", actualBehavior: "", notes: "",
+  userWorkflowImpact: "", safetyRelevance: "", workaroundDesc: "",
+  workaroundPracticality: "", occurrence: "",
+  screenshots: "", videos: "", logs: "", testIds: "",
+  reqIds: "", riskIds: "", relatedKeys: "",
+  bugType: "", impactCat: "", prioritySug: "", priorityRationale: "",
+  searchDone: false, searchResults: [], dupOutcome: "", dupLinked: [],
+};
+
+// ─── Common ──────────────────────────────────────────────────────────────────
+
+const inp = { width:"100%", padding:"8px 10px", border:"2px solid var(--gray-100)",
+  borderRadius:"4px", fontSize:"14px", outline:"none" };
+
+function Field({ label, required, hint, error, children }) {
+  return (
+    <div style={{ marginBottom:16 }}>
+      <label style={{ display:"block", fontWeight:600, fontSize:13, marginBottom:4, color:"var(--gray-900)" }}>
+        {label}{required && <span style={{color:"var(--red)",marginLeft:3}}>*</span>}
+      </label>
+      {hint && <p style={{margin:"0 0 5px",fontSize:12,color:"var(--gray-500)"}}>{hint}</p>}
+      {children}
+      {error && <p style={{margin:"4px 0 0",fontSize:12,color:"var(--red)"}}>{error}</p>}
+    </div>
+  );
+}
+
+function Banner({ type="info", title, children }) {
+  const map = {
+    info:    {bg:"var(--blue-light)",  border:"var(--blue)",     color:"var(--blue-dark)"},
+    success: {bg:"var(--green-light)", border:"var(--green)",    color:"#006644"},
+    warning: {bg:"var(--orange-light)",border:"var(--orange)",   color:"#974F0C"},
+    error:   {bg:"var(--red-light)",   border:"var(--red)",      color:"var(--red-dark)"},
+  };
+  const c = map[type];
+  return (
+    <div style={{background:c.bg,border:`1px solid ${c.border}`,borderRadius:4,
+      padding:"10px 14px",marginBottom:14,color:c.color,fontSize:13}}>
+      {title && <strong style={{display:"block",marginBottom:3}}>{title}</strong>}
+      {children}
+    </div>
+  );
+}
+
+// ─── Progress bar ────────────────────────────────────────────────────────────
+
+function Progress({ steps, current }) {
+  return (
+    <div style={{display:"flex",alignItems:"center",overflowX:"auto",
+      paddingBottom:8,marginBottom:20,gap:0}}>
+      {steps.map((s, i) => {
+        const done = i < current, active = i === current;
+        return (
+          <React.Fragment key={i}>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",minWidth:56}}>
+              <div style={{width:26,height:26,borderRadius:"50%",display:"flex",
+                alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,
+                background: done?"var(--green)":active?"var(--blue)":"var(--gray-100)",
+                color: done||active?"#fff":"var(--gray-500)"}}>
+                {done ? "✓" : i+1}
+              </div>
+              <span style={{fontSize:9,marginTop:3,textAlign:"center",whiteSpace:"nowrap",
+                fontWeight:active?700:400,
+                color:active?"var(--blue)":done?"var(--green)":"var(--gray-500)"}}>
+                {s}
+              </span>
+            </div>
+            {i < steps.length-1 && (
+              <div style={{flex:1,height:2,background:done?"var(--green)":"var(--gray-100)",
+                minWidth:8,marginBottom:16}} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Nav buttons ─────────────────────────────────────────────────────────────
+
+function Nav({ idx, total, canNext, isLast, isSubmitting, onBack, onNext, onSubmit }) {
+  const btn = { padding:"8px 18px",borderRadius:4,fontSize:14,fontWeight:500,
+    cursor:"pointer",border:"none" };
+  return (
+    <div style={{display:"flex",justifyContent:"space-between",marginTop:20,
+      paddingTop:14,borderTop:"1px solid var(--gray-100)"}}>
+      <button style={{...btn,background:"var(--gray-50)",color:"var(--gray-700)"}}
+        onClick={onBack} disabled={idx===0}>← Back</button>
+      {isLast
+        ? <button style={{...btn,background:canNext?"var(--green)":"var(--gray-300)",color:"#fff"}}
+            onClick={onSubmit} disabled={!canNext||isSubmitting}>
+            {isSubmitting ? "Creating…" : "✓ Create SQA Bug"}
+          </button>
+        : <button style={{...btn,background:canNext?"var(--blue)":"var(--gray-300)",color:"#fff"}}
+            onClick={onNext} disabled={!canNext}>Next →</button>
+      }
+    </div>
+  );
+}
+
+// ─── Step 0 – Project ────────────────────────────────────────────────────────
+
+function StepProject({ d, set }) {
+  const projects = [
+    {key:"NOAM",name:"Noah Medical — AM"},
+    {key:"NOVA",name:"Noah Medical — Platform"},
+    {key:"SQA", name:"SQA Verification"},
+    {key:"INT", name:"Integration & Regression"},
+  ];
+  return (
+    <div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>Select Project</h3>
+      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
+        Choose the Jira project where this SQA bug will be created.
+      </p>
+      <Field label="Jira Project" required>
+        <select value={d.projectKey} onChange={e=>set({projectKey:e.target.value})} style={inp}>
+          <option value="">— Select a project —</option>
+          {projects.map(p=><option key={p.key} value={p.key}>{p.name} ({p.key})</option>)}
+        </select>
+      </Field>
+    </div>
+  );
+}
+
+// ─── Step 1 – Summary ────────────────────────────────────────────────────────
+
+function StepSummary({ d, set }) {
+  const subs = CATEGORIES.find(c=>c.value===d.category)?.subs ?? [];
+  const assembled = d.category && d.subCategory && d.problemStatement
+    ? `[${d.category}]-[${d.subCategory}]: ${d.problemStatement}${d.conditionClause?" "+d.conditionClause:""}`
+    : "";
+  const err = !d.category ? "Select a category."
+    : !d.subCategory ? "Select a sub-category."
+    : d.problemStatement.trim().length < 10 ? "Problem statement too short — be specific."
+    : !d.conditionClause.trim() ? "Add a 'when/condition' clause."
+    : null;
+  return (
+    <div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>1 — Summary</h3>
+      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
+        Pattern: <code style={{background:"var(--gray-50)",padding:"1px 5px",borderRadius:3}}>
+          [Category]-[Sub-Category]: Observed problem when &lt;condition&gt;
+        </code>
+      </p>
+      {err && <Banner type="error">{err}</Banner>}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <Field label="Category" required>
+          <select value={d.category} onChange={e=>set({category:e.target.value,subCategory:""})} style={inp}>
+            <option value="">— Select —</option>
+            {CATEGORIES.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+        </Field>
+        <Field label="Sub-Category" required>
+          <select value={d.subCategory} onChange={e=>set({subCategory:e.target.value})} style={inp} disabled={!d.category}>
+            <option value="">— Select —</option>
+            {subs.map(s=><option key={s} value={s}>{s}</option>)}
+          </select>
+        </Field>
+      </div>
+      <Field label="Problem Statement (user-visible symptom)" required
+        hint="What does the user observe? No root-cause guesses.">
+        <input type="text" value={d.problemStatement}
+          placeholder="e.g. Bronchoscope view freezes and turns black"
+          onChange={e=>set({problemStatement:e.target.value})} style={inp} />
+      </Field>
+      <Field label="When / Under What Condition" required
+        hint="e.g. when connecting via USB on a cold boot">
+        <input type="text" value={d.conditionClause}
+          placeholder="e.g. when starting a new procedure after TPS restart"
+          onChange={e=>set({conditionClause:e.target.value})} style={inp} />
+      </Field>
+      {assembled && (
+        <div style={{background:"var(--gray-50)",border:"1px solid var(--gray-100)",
+          borderRadius:4,padding:"10px 14px",marginTop:6}}>
+          <p style={{margin:"0 0 4px",fontSize:11,fontWeight:700,color:"var(--gray-500)"}}>ASSEMBLED SUMMARY PREVIEW</p>
+          <p style={{margin:0,fontSize:14,color:"var(--gray-900)",fontWeight:500}}>{assembled}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Step 2 – Environment ─────────────────────────────────────────────────────
+
+function StepEnvironment({ d, set }) {
+  return (
+    <div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>2 — Environment</h3>
+      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
+        All fields required unless unknown — use the "Unknown – reason" field to explain gaps.
+      </p>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <Field label="Software Version / Build ID" required hint="e.g. 1.4.0.1-37">
+          <input type="text" value={d.softwareVersion} placeholder="1.4.0.1-37"
+            onChange={e=>set({softwareVersion:e.target.value})} style={inp} />
+        </Field>
+        <Field label="Branch / Release Line" required hint="e.g. 1D.0 dev">
+          <input type="text" value={d.branchRelease} placeholder="1D.0 dev"
+            onChange={e=>set({branchRelease:e.target.value})} style={inp} />
+        </Field>
+        <Field label="Build Number" hint="e.g. 1.4.0.1-XX">
+          <input type="text" value={d.buildNumber} placeholder="1.4.0.1-XX"
+            onChange={e=>set({buildNumber:e.target.value})} style={inp} />
+        </Field>
+        <Field label="Mode / Key Settings" required hint="Simulation vs live, feature flags, locale">
+          <input type="text" value={d.mode} placeholder="Live, EN-US, Wi-Fi"
+            onChange={e=>set({mode:e.target.value})} style={inp} />
+        </Field>
+      </div>
+      <Field label="Hardware Configuration" required hint="System type, TIC model, controller, peripherals">
+        <textarea rows={3} value={d.hardwareConfig}
+          placeholder="e.g. NovaCyclone Gen2, TIC v4, USB bronchoscope BC-12, standard OR cart"
+          onChange={e=>set({hardwareConfig:e.target.value})}
+          style={{...inp,resize:"vertical"}} />
+      </Field>
+      <Field label="Unknown – Reason" hint="Fill if any field above is genuinely unknown">
+        <textarea rows={2} value={d.unknownReason}
+          placeholder="e.g. Historic re-test – build ID not recorded in test log"
+          onChange={e=>set({unknownReason:e.target.value})}
+          style={{...inp,resize:"vertical",borderColor:d.unknownReason?"var(--orange)":"var(--gray-100)"}} />
+      </Field>
+    </div>
+  );
+}
+
+// ─── Step 3 – Preconditions ───────────────────────────────────────────────────
+
+function StepPreconditions({ d, set }) {
+  return (
+    <div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>3 — Preconditions</h3>
+      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
+        Describe the system state before step 1: uptime, user role, data loaded, prior actions.
+      </p>
+      <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,cursor:"pointer"}}>
+        <input type="checkbox" checked={d.noPreconditions}
+          onChange={e=>set({noPreconditions:e.target.checked})} />
+        <span style={{fontWeight:500,fontSize:14}}>No special preconditions</span>
+      </label>
+      {d.noPreconditions ? (
+        <Field label="Brief explanation" required>
+          <input type="text" value={d.noPreconditionsExp}
+            placeholder="e.g. Reproducible from any fresh session with default settings"
+            onChange={e=>set({noPreconditionsExp:e.target.value})} style={inp} />
+        </Field>
+      ) : (
+        <Field label="Preconditions" required hint="List each on its own line or as a numbered list.">
+          <textarea rows={5} value={d.preconditions}
+            placeholder={"1. System powered on and at home screen\n2. User logged in as clinical operator\n3. USB scope BC-12 connected"}
+            onChange={e=>set({preconditions:e.target.value})}
+            style={{...inp,resize:"vertical"}} />
+        </Field>
+      )}
+    </div>
+  );
+}
+
+// ─── Step 4 – Steps to Reproduce ──────────────────────────────────────────────
+
+function StepRepro({ d, set }) {
+  function updateStep(i, v) {
+    const s = [...d.steps]; s[i]=v; set({steps:s});
+  }
+  function addStep() { set({steps:[...d.steps,""]}); }
+  function removeStep(i) { if(d.steps.length<=1) return; set({steps:d.steps.filter((_,j)=>j!==i)}); }
+  const REPRO_OPTS = ["3/3","2/3","1/3","5/5","2/5","1/5","2/10","1/10","Observed once","Consistent","Intermittent"];
+  return (
+    <div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>4 — Steps to Reproduce</h3>
+      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
+        Number every action from a known starting state. Be concrete enough for another engineer to follow cold.
+      </p>
+      <Field label="Initial State" required hint="What is the system state before step 1?">
+        <input type="text" value={d.initialState}
+          placeholder="e.g. System at home screen, scope connected, no active case"
+          onChange={e=>set({initialState:e.target.value})} style={inp} />
+      </Field>
+      <div style={{marginBottom:14}}>
+        <label style={{display:"block",fontWeight:600,fontSize:13,marginBottom:8,color:"var(--gray-900)"}}>
+          Steps <span style={{color:"var(--red)"}}>*</span>
+        </label>
+        {d.steps.map((step,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+            <div style={{minWidth:24,height:24,background:"var(--blue)",color:"#fff",borderRadius:"50%",
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700}}>
+              {i+1}
+            </div>
+            <input type="text" value={step} placeholder={`Step ${i+1}…`}
+              onChange={e=>updateStep(i,e.target.value)}
+              style={{...inp,flex:1}} />
+            <button onClick={()=>removeStep(i)} disabled={d.steps.length<=1}
+              style={{padding:"5px 9px",background:"var(--red-light)",color:"var(--red-dark)",
+                border:"1px solid #FFBDAD",borderRadius:4,cursor:"pointer",fontSize:13}}>×</button>
+          </div>
+        ))}
+        <button onClick={addStep}
+          style={{padding:"5px 13px",background:"var(--blue-light)",color:"var(--blue)",
+            border:"1px solid #B3D4FF",borderRadius:4,cursor:"pointer",fontSize:13,marginTop:2}}>
+          + Add Step
+        </button>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <Field label="Reproducibility Rate" required>
+          <select value={d.reproducibility} onChange={e=>set({reproducibility:e.target.value})} style={inp}>
+            <option value="">— Select —</option>
+            {REPRO_OPTS.map(o=><option key={o} value={o}>{o}</option>)}
+          </select>
+        </Field>
+        <Field label="Intermittent / Pattern Notes">
+          <textarea rows={2} value={d.intermittentNotes}
+            placeholder="e.g. Occurs only when scope temp is low"
+            onChange={e=>set({intermittentNotes:e.target.value})}
+            style={{...inp,resize:"vertical"}} />
+        </Field>
+      </div>
+    </div>
+  );
+}
+
+// ─── Step 5 – Expected vs Actual ──────────────────────────────────────────────
+
+function StepExpAct({ d, set }) {
+  return (
+    <div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>5 — Expected vs Actual Behavior</h3>
+      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
+        Expected = what the product should do. Actual = what it did. Root-cause theories go in Notes only.
+      </p>
+      <Field label="Expected Behavior" required hint="Describe the correct, intended user-facing behavior.">
+        <textarea rows={4} value={d.expectedBehavior}
+          placeholder="e.g. The bronchoscope view should display a live video feed within 3 seconds of connection."
+          onChange={e=>set({expectedBehavior:e.target.value})}
+          style={{...inp,resize:"vertical"}} />
+      </Field>
+      <Field label="Actual Behavior" required hint="Describe exactly what was observed, including any error messages or UI state.">
+        <textarea rows={4} value={d.actualBehavior}
+          placeholder="e.g. The view remains black with a spinner indefinitely. No error message displayed. Scope LED is active."
+          onChange={e=>set({actualBehavior:e.target.value})}
+          style={{...inp,resize:"vertical"}} />
+      </Field>
+      <Field label="Notes / Suspected Cause" hint="Optional — root-cause theories, related observations.">
+        <textarea rows={3} value={d.notes}
+          placeholder="e.g. May be related to USB driver initialisation timeout seen in logs."
+          onChange={e=>set({notes:e.target.value})}
+          style={{...inp,resize:"vertical"}} />
+      </Field>
+    </div>
+  );
+}
+
+// ─── Step 6 – Impact ─────────────────────────────────────────────────────────
+
+function StepImpact({ d, set }) {
+  return (
+    <div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>6 — Impact (SQA View)</h3>
+      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
+        Describe impact in user and workflow terms to help triage understand urgency.
+      </p>
+      <Field label="User / Workflow Impact" required hint="Delays, interruptions, repeated steps, lost confidence.">
+        <textarea rows={4} value={d.userWorkflowImpact}
+          placeholder="e.g. Clinician cannot visualise scope during navigation. Session restart required (~10 min delay). Observed in 3 simulations."
+          onChange={e=>set({userWorkflowImpact:e.target.value})}
+          style={{...inp,resize:"vertical"}} />
+      </Field>
+      <Field label="Safety Relevance" hint="Only if patient safety is evidently affected.">
+        <textarea rows={2} value={d.safetyRelevance}
+          placeholder="Leave blank if no evident safety concern."
+          onChange={e=>set({safetyRelevance:e.target.value})}
+          style={{...inp,resize:"vertical"}} />
+      </Field>
+      <Field label="Workaround Description">
+        <textarea rows={2} value={d.workaroundDesc}
+          placeholder="e.g. Disconnect and reconnect USB scope; restart TPS session."
+          onChange={e=>set({workaroundDesc:e.target.value})}
+          style={{...inp,resize:"vertical"}} />
+      </Field>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <Field label="Workaround Practicality" required>
+          <select value={d.workaroundPracticality}
+            onChange={e=>set({workaroundPracticality:e.target.value})} style={inp}>
+            <option value="">— Select —</option>
+            <option value="trivial">Trivial (quick, no disruption)</option>
+            <option value="acceptable">Acceptable (minor effort)</option>
+            <option value="cumbersome">Cumbersome (significant effort)</option>
+            <option value="unrealistic">Unrealistic / No workaround</option>
+          </select>
+        </Field>
+        <Field label="Estimated Occurrence" required>
+          <select value={d.occurrence} onChange={e=>set({occurrence:e.target.value})} style={inp}>
+            <option value="">— Select —</option>
+            <option value="remote">Remote (edge case)</option>
+            <option value="occasional">Occasional (sometimes)</option>
+            <option value="frequent">Frequent (common path)</option>
+          </select>
+        </Field>
+      </div>
+    </div>
+  );
+}
+
+// ─── Step 7 – Evidence ────────────────────────────────────────────────────────
+
+function StepEvidence({ d, set }) {
+  return (
+    <div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>7 — Evidence & Attachments</h3>
+      <Banner type="info">
+        ℹ️ <strong>Attach files in Jira:</strong> After the bug is created, drag screenshots, videos, and log
+        files onto the Jira issue. Reference their names below.
+      </Banner>
+      <Field label="Screenshot / Photo References">
+        <textarea rows={2} value={d.screenshots}
+          placeholder="e.g. scope_black_screen_2024-01-15.png"
+          onChange={e=>set({screenshots:e.target.value})} style={{...inp,resize:"vertical"}} />
+      </Field>
+      <Field label="Video References">
+        <textarea rows={2} value={d.videos}
+          placeholder="e.g. repro_2024-01-15_14-32.mp4 (scope disconnect sequence)"
+          onChange={e=>set({videos:e.target.value})} style={{...inp,resize:"vertical"}} />
+      </Field>
+      <Field label="Log Collection Details" hint="Tool name, time window, timezone.">
+        <textarea rows={3} value={d.logs}
+          placeholder="e.g. TPS system log, 2024-01-15 14:30–14:35 UTC-8, via Log Collector v2.1."
+          onChange={e=>set({logs:e.target.value})} style={{...inp,resize:"vertical"}} />
+      </Field>
+      <Field label="Test Case IDs / Run IDs / Plan Links">
+        <textarea rows={2} value={d.testIds}
+          placeholder="e.g. TC-4521, TC-4522; Run ID: TR-1892; Plan: TP-Nav-1D.0"
+          onChange={e=>set({testIds:e.target.value})} style={{...inp,resize:"vertical"}} />
+      </Field>
+    </div>
+  );
+}
+
+// ─── Step 8 – Traceability ────────────────────────────────────────────────────
+
+function StepTrace({ d, set }) {
+  return (
+    <div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>8 — Traceability Links</h3>
+      <Banner type="info">All fields on this step are optional. Leave blank if links are unknown.</Banner>
+      <Field label="Requirement ID(s)" hint="e.g. REQ-1042, REQ-1053">
+        <input type="text" value={d.reqIds} placeholder="REQ-1042"
+          onChange={e=>set({reqIds:e.target.value})} style={inp} />
+      </Field>
+      <Field label="Risk Item ID(s)">
+        <input type="text" value={d.riskIds} placeholder="RISK-214"
+          onChange={e=>set({riskIds:e.target.value})} style={inp} />
+      </Field>
+      <Field label="Related Jira Keys" hint="Duplicates (closed), similar bugs, linked improvements.">
+        <input type="text" value={d.relatedKeys} placeholder="PROJ-1234, PROJ-1256"
+          onChange={e=>set({relatedKeys:e.target.value})} style={inp} />
+      </Field>
+    </div>
+  );
+}
+
+// ─── Step 9 – Classification ──────────────────────────────────────────────────
+
+function StepClass({ d, set }) {
+  return (
+    <div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>9 — Classification Suggestion</h3>
+      <Banner type="warning">
+        ⚠️ <strong>SQA suggestion only.</strong> Final severity and priority are set by triage/product/engineering.
+      </Banner>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
+        <Field label="Type">
+          <select value={d.bugType} onChange={e=>set({bugType:e.target.value})} style={inp}>
+            <option value="">— Optional —</option>
+            <option>Bug</option><option>Improvement</option>
+          </select>
+        </Field>
+        <Field label="Impact Category">
+          <select value={d.impactCat} onChange={e=>set({impactCat:e.target.value})} style={inp}>
+            <option value="">— Optional —</option>
+            <option>Minor</option><option>Intermediate</option>
+            <option>Major</option><option>Blocker</option>
+          </select>
+        </Field>
+        <Field label="Priority Suggestion">
+          <select value={d.prioritySug} onChange={e=>set({prioritySug:e.target.value})} style={inp}>
+            <option value="">— Optional —</option>
+            <option>Highest</option><option>High</option>
+            <option>Medium</option><option>Low</option>
+          </select>
+        </Field>
+      </div>
+      <Field label="Priority Rationale" hint="Required if Blocker.">
+        <textarea rows={3} value={d.priorityRationale}
+          placeholder="e.g. Blocks the core navigation workflow in every procedure; no workaround in simulation mode."
+          onChange={e=>set({priorityRationale:e.target.value})}
+          style={{...inp,resize:"vertical"}} />
+      </Field>
+    </div>
+  );
+}
+
+// ─── Step 10 – Duplicate Search ───────────────────────────────────────────────
+
+const MOCK_RESULTS = [
+  {key:"NOAM-812", summary:"[R&C]-[BC]: Scope view blacks out during initialisation on cold start", status:"Open", cat:"new", desc:"Reported by SQA 2024-01-03. Scope remains black after USB connection on cold-boot systems."},
+  {key:"NOAM-654", summary:"[R&C]-[BC]: Bronchoscope view intermittently freezes mid-procedure", status:"In Progress", cat:"new", desc:"Intermittent freeze observed in 2/10 runs. Different trigger than current issue."},
+  {key:"NOAM-443", summary:"[R&C]-[BC]: Scope feed delayed >10s on session start", status:"Done", cat:"done", desc:"Fixed in 1C.2 build. May be related — verify if regression."},
+];
+
+function StepDupSearch({ d, set }) {
+  const [searching, setSearching] = React.useState(false);
+  const [results, setResults] = React.useState(d.searchDone ? MOCK_RESULTS : []);
+  const [outcome, setOutcome] = React.useState(d.dupOutcome);
+  const [selectedKey, setSelectedKey] = React.useState(null);
+
+  function runSearch() {
+    setSearching(true);
+    setTimeout(() => {
+      setResults(MOCK_RESULTS);
+      set({searchDone:true, dupOutcome:"", dupLinked:[]});
+      setOutcome(""); setSelectedKey(null);
+      setSearching(false);
+    }, 1400);
+  }
+
+  function pickOutcome(val, key=null) {
+    setOutcome(val);
+    setSelectedKey(key);
+    set({dupOutcome:val, dupLinked:key?[key]:[]});
+  }
+
+  const openR = results.filter(r=>r.cat==="new");
+  const closedR = results.filter(r=>r.cat==="done");
+
+  const rowStyle = {display:"grid",gridTemplateColumns:"110px 1fr 100px",
+    gap:10,padding:"9px 12px",borderBottom:"1px solid var(--gray-100)",
+    alignItems:"start",fontSize:13,cursor:"pointer"};
+
+  return (
+    <div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>Duplicate Search</h3>
+      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
+        Search existing bugs before creating. You must run the search and pick an outcome.
+      </p>
+      {outcome==="open_match" && (
+        <Banner type="warning" title="Open duplicate found">
+          A matching open bug exists. Add evidence to that bug instead of creating a new one.
+        </Banner>
+      )}
+      <button onClick={runSearch} disabled={searching}
+        style={{padding:"8px 18px",background:"var(--blue)",color:"#fff",
+          border:"none",borderRadius:4,fontSize:14,cursor:"pointer",marginBottom:18,
+          opacity:searching?0.7:1}}>
+        {searching ? "🔍 Searching…" : "🔍 Run Duplicate Search"}
+      </button>
+      {!d.searchDone && !searching && (
+        <Banner type="info">Click "Run Duplicate Search" to continue.</Banner>
+      )}
+      {results.length>0 && (
+        <>
+          <h4 style={{margin:"0 0 8px",color:"var(--gray-900)"}}>Open Bugs ({openR.length})</h4>
+          <div style={{border:"1px solid var(--gray-100)",borderRadius:4,marginBottom:14,overflow:"hidden"}}>
+            <div style={{...rowStyle,background:"var(--gray-50)",fontWeight:600,
+              borderBottom:"2px solid var(--gray-100)",cursor:"default"}}>
+              <span>Key</span><span>Summary / Description</span><span>Status</span>
+            </div>
+            {openR.map(r=>(
+              <div key={r.key} style={{...rowStyle,
+                background:selectedKey===r.key?"var(--blue-light)":"#fff"}}
+                onClick={()=>pickOutcome("open_match",r.key)}>
+                <span><input type="radio" readOnly checked={selectedKey===r.key} />
+                  {" "}<strong style={{color:"var(--blue)"}}>{r.key}</strong></span>
+                <span>
+                  <div style={{fontWeight:500}}>{r.summary}</div>
+                  <div style={{color:"var(--gray-500)",fontSize:12,marginTop:2}}>{r.desc.slice(0,100)}…</div>
+                </span>
+                <span style={{background:"var(--red-light)",color:"var(--red-dark)",borderRadius:3,
+                  padding:"2px 6px",fontSize:11,fontWeight:600}}>{r.status}</span>
+              </div>
+            ))}
+          </div>
+
+          <h4 style={{margin:"0 0 8px",color:"var(--gray-900)"}}>Closed / Resolved Bugs ({closedR.length})</h4>
+          <div style={{border:"1px solid var(--gray-100)",borderRadius:4,marginBottom:16,overflow:"hidden"}}>
+            <div style={{...rowStyle,background:"var(--gray-50)",fontWeight:600,
+              borderBottom:"2px solid var(--gray-100)",cursor:"default"}}>
+              <span>Key</span><span>Summary / Description</span><span>Status</span>
+            </div>
+            {closedR.map(r=>(
+              <div key={r.key} style={{...rowStyle,
+                background:selectedKey===r.key?"var(--green-light)":"#fff"}}
+                onClick={()=>pickOutcome("closed_match",r.key)}>
+                <span><input type="radio" readOnly checked={selectedKey===r.key} />
+                  {" "}<strong style={{color:"var(--blue)"}}>{r.key}</strong></span>
+                <span>
+                  <div style={{fontWeight:500}}>{r.summary}</div>
+                  <div style={{color:"var(--gray-500)",fontSize:12,marginTop:2}}>{r.desc.slice(0,100)}…</div>
+                </span>
+                <span style={{background:"var(--green-light)",color:"#006644",borderRadius:3,
+                  padding:"2px 6px",fontSize:11,fontWeight:600}}>{r.status}</span>
+              </div>
+            ))}
+          </div>
+
+          <h4 style={{margin:"0 0 10px",color:"var(--gray-900)"}}>Select Outcome</h4>
+          {[
+            {v:"none",       label:"✅ None of these match — proceed with new bug",          c:"#006644", bg:"var(--green-light)"},
+            {v:"closed_match",label:"🔄 Same as a CLOSED bug — re-occurrence (will link)",   c:"#974F0C", bg:"var(--orange-light)"},
+            {v:"open_match", label:"🚫 Same as an OPEN bug — add evidence there instead",    c:"var(--red-dark)", bg:"var(--red-light)"},
+          ].map(opt=>(
+            <label key={opt.v} style={{display:"flex",alignItems:"center",gap:10,
+              padding:"9px 14px",borderRadius:4,marginBottom:6,cursor:"pointer",
+              background:outcome===opt.v?opt.bg:"var(--gray-50)",
+              border:`1px solid ${outcome===opt.v?opt.c:"var(--gray-100)"}`,
+              color:opt.c,fontWeight:outcome===opt.v?600:400}}>
+              <input type="radio" name="outcome" value={opt.v}
+                checked={outcome===opt.v}
+                onChange={()=>pickOutcome(opt.v, null)} />
+              {opt.label}
+            </label>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Step 11 – Review & Submit ────────────────────────────────────────────────
+
+function StepReview({ d, onSubmit, submitting }) {
+  const checks = [
+    { label:"Summary — category, sub-category, user-visible problem", ok: !!d.category && !!d.subCategory && d.problemStatement.length>=10 && !!d.conditionClause },
+    { label:"Environment — version, branch, hardware, mode", ok: (!!d.softwareVersion||!!d.unknownReason)&&(!!d.branchRelease||!!d.unknownReason)&&(!!d.hardwareConfig||!!d.unknownReason)&&(!!d.mode||!!d.unknownReason) },
+    { label:"Preconditions — documented or explicitly none", ok: (d.noPreconditions&&!!d.noPreconditionsExp)||((!d.noPreconditions)&&!!d.preconditions) },
+    { label:"Steps to reproduce — ≥2 steps, initial state, reproducibility", ok: !!d.initialState&&d.steps.filter(s=>s.trim()).length>=2&&!!d.reproducibility },
+    { label:"Expected vs actual behavior — clearly differentiated", ok: !!d.expectedBehavior&&!!d.actualBehavior&&d.expectedBehavior.toLowerCase()!==d.actualBehavior.toLowerCase() },
+    { label:"Impact — user/workflow effect, workaround, frequency", ok: !!d.userWorkflowImpact&&!!d.occurrence&&(!!d.workaroundPracticality||!!d.workaroundDesc) },
+    { label:"Evidence — at least one reference", ok: !!(d.screenshots||d.videos||d.logs||d.testIds) },
+    { label:"Duplicate search — performed and outcome resolved", ok: d.searchDone&&!!d.dupOutcome&&d.dupOutcome!=="open_match" },
+    { label:"Classification — Blocker requires rationale", ok: !(d.impactCat==="Blocker"&&!d.priorityRationale) },
+  ];
+  const pass = checks.every(c=>c.ok);
+  const assembled = d.category&&d.subCategory&&d.problemStatement
+    ? `[${d.category}]-[${d.subCategory}]: ${d.problemStatement}${d.conditionClause?" "+d.conditionClause:""}`
+    : "(summary not yet built)";
+
+  return (
+    <div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>Review & Submit</h3>
+      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>All items must pass before the bug can be created.</p>
+
+      <div style={{background:pass?"var(--green-light)":"var(--red-light)",
+        border:`2px solid ${pass?"var(--green)":"var(--red)"}`,
+        borderRadius:6,padding:"10px 14px",marginBottom:14}}>
+        <div style={{fontWeight:800,fontSize:15,color:pass?"#006644":"var(--red-dark)"}}>
+          {pass ? "✓ SQA GATE: PASSED" : `✗ SQA GATE: FAILED — ${checks.filter(c=>!c.ok).length} item(s)`}
+        </div>
+      </div>
+
+      <div style={{border:"1px solid var(--gray-100)",borderRadius:4,overflow:"hidden",marginBottom:16}}>
+        <div style={{background:"var(--gray-50)",padding:"8px 14px",fontWeight:700,fontSize:13,
+          borderBottom:"2px solid var(--gray-100)"}}>SQA Pre-Submit Checklist</div>
+        {checks.map((c,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"8px 14px",
+            background:c.ok?"#fff":"#FFF4F4",borderBottom:"1px solid var(--gray-50)"}}>
+            <span style={{fontSize:14,flexShrink:0}}>{c.ok?"✅":"❌"}</span>
+            <span style={{fontSize:13,color:c.ok?"var(--gray-700)":"var(--red-dark)",fontWeight:c.ok?400:600}}>
+              {c.label}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{background:"var(--gray-50)",border:"1px solid var(--gray-100)",borderRadius:4,
+        padding:"10px 14px",marginBottom:16}}>
+        <p style={{margin:"0 0 4px",fontWeight:700,fontSize:11,color:"var(--gray-500)"}}>JIRA SUMMARY PREVIEW</p>
+        <p style={{margin:0,fontSize:14,color:"var(--gray-900)",fontWeight:500}}>{assembled}</p>
+        <p style={{margin:"6px 0 0",fontSize:12,color:"var(--gray-500)"}}>
+          Project: <strong>{d.projectKey||"—"}</strong>
+        </p>
+      </div>
+
+      <div style={{textAlign:"center"}}>
+        <button onClick={onSubmit} disabled={!pass||submitting}
+          style={{padding:"12px 32px",fontSize:15,fontWeight:700,border:"none",
+            background:pass?"var(--green)":"var(--gray-300)",
+            color:"#fff",borderRadius:4,cursor:pass?"pointer":"not-allowed"}}>
+          {submitting ? "⏳ Creating Bug…" : "✓ Create SQA Bug in Jira"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Panel preview ────────────────────────────────────────────────────────────
+
+function PanelPreview({ passed }) {
+  const items = [
+    { label:"Summary — category, sub-category, user-visible problem", ok:true },
+    { label:"Environment — version, branch, hardware, mode", ok:true },
+    { label:"Preconditions — documented or explicitly none", ok:true },
+    { label:"Steps to reproduce — numbered, concrete, from initial state", ok:true },
+    { label:"Expected vs actual behavior — clearly differentiated", ok:!passed },
+    { label:"Impact — user/workflow effect, workaround, frequency", ok:passed },
+    { label:"Evidence — logs, screenshots, test IDs referenced", ok:passed },
+    { label:"Duplicate search — performed and outcome resolved", ok:true },
+    { label:"Classification — Blocker impact requires rationale", ok:true },
+  ];
+  const actualPass = items.every(i=>i.ok);
+  const passing = items.filter(i=>i.ok).length;
+  return (
+    <div style={{fontFamily:"inherit",padding:12,fontSize:13}}>
+      <div style={{background:actualPass?"var(--green-light)":"var(--red-light)",
+        border:`2px solid ${actualPass?"var(--green)":"var(--red)"}`,
+        borderRadius:6,padding:"10px 14px",marginBottom:12}}>
+        <div style={{fontWeight:800,fontSize:14,color:actualPass?"#006644":"var(--red-dark)"}}>
+          {actualPass ? "✓ SQA GATE: PASSED" : "✗ SQA GATE: FAILED"}
+        </div>
+        <div style={{fontSize:11,color:"#6B778C",marginTop:3}}>
+          Last checked: {new Date().toLocaleString()}
+        </div>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:8,alignItems:"center"}}>
+        <span style={{color:"var(--gray-500)",fontSize:12}}>{passing}/{items.length} items pass</span>
+        <button style={{padding:"4px 10px",background:"var(--gray-50)",color:"var(--gray-700)",
+          border:"1px solid var(--gray-100)",borderRadius:4,fontSize:11,cursor:"pointer"}}>↻ Refresh</button>
+      </div>
+      <div style={{border:"1px solid var(--gray-100)",borderRadius:4,overflow:"hidden"}}>
+        {[...items].sort((a,b)=>a.ok===b.ok?0:a.ok?1:-1).map((item,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"7px 12px",
+            borderBottom:"1px solid var(--gray-50)",background:item.ok?"#fff":"#FFF4F4"}}>
+            <span style={{fontSize:13,flexShrink:0}}>{item.ok?"✅":"❌"}</span>
+            <span style={{fontSize:12,color:item.ok?"var(--gray-700)":"var(--red-dark)",fontWeight:item.ok?400:600}}>
+              {item.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── App shell ────────────────────────────────────────────────────────────────
+
+function App() {
+  const [view, setView] = React.useState("wizard"); // "wizard" | "panel_fail" | "panel_pass"
+  const [step, setStep] = React.useState(0);
+  const [d, setD] = React.useState(INITIAL);
+  const [submitted, setSubmitted] = React.useState(false);
+  const [submitting, setSubmitting] = React.useState(false);
+
+  function set(patch) { setD(prev=>({...prev,...patch})); }
+
+  const stepValid = [
+    !!d.projectKey,
+    !!d.category && !!d.subCategory && d.problemStatement.length>=10 && !!d.conditionClause,
+    (!!d.softwareVersion||!!d.unknownReason) && (!!d.hardwareConfig||!!d.unknownReason) && (!!d.mode||!!d.unknownReason),
+    (d.noPreconditions&&!!d.noPreconditionsExp)||((!d.noPreconditions)&&!!d.preconditions),
+    !!d.initialState && d.steps.filter(s=>s.trim()).length>=2 && !!d.reproducibility,
+    !!d.expectedBehavior && !!d.actualBehavior,
+    !!d.userWorkflowImpact && !!d.occurrence,
+    !!(d.screenshots||d.videos||d.logs||d.testIds),
+    true, // traceability optional
+    true, // classification optional
+    d.searchDone && !!d.dupOutcome,
+    true, // review always navigable
+  ];
+
+  function handleSubmit() {
+    setSubmitting(true);
+    setTimeout(()=>{ setSubmitting(false); setSubmitted(true); }, 1600);
+  }
+
+  const STEPS = [
+    <StepProject d={d} set={set} />,
+    <StepSummary d={d} set={set} />,
+    <StepEnvironment d={d} set={set} />,
+    <StepPreconditions d={d} set={set} />,
+    <StepRepro d={d} set={set} />,
+    <StepExpAct d={d} set={set} />,
+    <StepImpact d={d} set={set} />,
+    <StepEvidence d={d} set={set} />,
+    <StepTrace d={d} set={set} />,
+    <StepClass d={d} set={set} />,
+    <StepDupSearch d={d} set={set} />,
+    <StepReview d={d} onSubmit={handleSubmit} submitting={submitting} />,
+  ];
+
+  const navBtnStyle = (active, color="#0052CC") => ({
+    padding:"7px 16px", border:"none", borderRadius:4,
+    background: active ? color : "#DFE1E6",
+    color: active ? "#fff" : "#6B778C",
+    cursor:"pointer", fontSize:13, fontWeight: active ? 700 : 400,
+  });
+
+  return (
+    <div style={{minHeight:"100vh",background:"var(--gray-50)"}}>
+      {/* ── Header ── */}
+      <div style={{background:"#0052CC",padding:"10px 20px",display:"flex",
+        alignItems:"center",gap:16,boxShadow:"0 2px 4px rgba(0,0,0,0.2)"}}>
+        <span style={{color:"#fff",fontWeight:800,fontSize:16,letterSpacing:"0.3px"}}>
+          🔬 SQA Bug Gate
+        </span>
+        <span style={{flex:1}}></span>
+        <button onClick={()=>setView("wizard")} style={navBtnStyle(view==="wizard","#0065FF")}>
+          Wizard (New SQA Bug)
+        </button>
+        <button onClick={()=>setView("panel_fail")} style={navBtnStyle(view==="panel_fail","#0065FF")}>
+          Issue Panel — FAILED
+        </button>
+        <button onClick={()=>setView("panel_pass")} style={navBtnStyle(view==="panel_pass","#0065FF")}>
+          Issue Panel — PASSED
+        </button>
+      </div>
+
+      {/* ── Content ── */}
+      {view === "wizard" && (
+        <div style={{maxWidth:880,margin:"0 auto",padding:"20px 16px"}}>
+          {submitted ? (
+            <div style={{background:"#fff",border:"1px solid var(--gray-100)",borderRadius:4,
+              padding:40,textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.08)"}}>
+              <div style={{fontSize:52,marginBottom:14}}>✅</div>
+              <h2 style={{color:"var(--green)",margin:"0 0 8px"}}>SQA Bug Created</h2>
+              <p style={{fontSize:16,color:"var(--gray-700)"}}>
+                <strong>NOAM-{1000+Math.floor(Math.random()*9000)}</strong> has been created and passes the SQA gate.
+              </p>
+              <p style={{fontSize:13,color:"var(--gray-500)"}}>
+                Remember to attach screenshots, videos, and log files to the issue.
+              </p>
+              <button onClick={()=>{setSubmitted(false);setStep(0);setD(INITIAL);}}
+                style={{marginTop:14,padding:"10px 22px",background:"var(--blue)",color:"#fff",
+                  border:"none",borderRadius:4,fontSize:14,cursor:"pointer"}}>
+                + Create Another Bug
+              </button>
+            </div>
+          ) : (
+            <>
+              <div style={{marginBottom:4}}>
+                <h2 style={{margin:0,color:"var(--gray-900)"}}>New SQA Bug</h2>
+                <p style={{margin:"2px 0 12px",color:"var(--gray-500)",fontSize:13}}>
+                  Noah Medical SQA Bug Report Quality Gate — all mandatory sections must pass before submission.
+                </p>
+              </div>
+              <Progress steps={WIZARD_STEPS} current={step} />
+              <div style={{background:"#fff",border:"1px solid var(--gray-100)",borderRadius:4,
+                padding:24,boxShadow:"0 1px 3px rgba(0,0,0,0.06)"}}>
+                {STEPS[step]}
+                {step < STEPS.length - 1 && (
+                  <Nav idx={step} total={STEPS.length} canNext={stepValid[step]}
+                    isLast={step===STEPS.length-1}
+                    isSubmitting={submitting}
+                    onBack={()=>setStep(s=>Math.max(0,s-1))}
+                    onNext={()=>setStep(s=>Math.min(STEPS.length-1,s+1))}
+                    onSubmit={handleSubmit} />
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {(view === "panel_fail" || view === "panel_pass") && (
+        <div style={{maxWidth:420,margin:"24px auto",padding:"0 16px"}}>
+          <div style={{marginBottom:8}}>
+            <h3 style={{margin:"0 0 2px",color:"var(--gray-900)"}}>
+              Issue: {view==="panel_fail" ? "NOAM-901" : "NOAM-812"}
+            </h3>
+            <p style={{margin:0,fontSize:12,color:"var(--gray-500)"}}>
+              SQA Gate panel (right sidebar on the Jira issue view)
+            </p>
+          </div>
+          <div style={{background:"#fff",border:"1px solid var(--gray-100)",borderRadius:4,
+            boxShadow:"0 1px 3px rgba(0,0,0,0.06)"}}>
+            <PanelPreview passed={view==="panel_pass"} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

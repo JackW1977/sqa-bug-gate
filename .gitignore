@@ -1,0 +1,10 @@
+node_modules/
+dist/
+static/wizard/node_modules/
+static/wizard/build/
+static/panel/node_modules/
+static/panel/build/
+.forge/
+*.local
+.env
+coverage/

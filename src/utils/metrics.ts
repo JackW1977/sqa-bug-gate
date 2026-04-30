@@ -1,0 +1,70 @@
+import { storage } from '@forge/api';
+import type { MetricRecord, MetricType, ValidationResult } from './sqaInstructionModel';
+
+const METRICS_PREFIX = 'sqa:metric:';
+const METRICS_INDEX_KEY = 'sqa:metrics:index';
+
+async function appendMetricKey(key: string): Promise<void> {
+  const index = (await storage.get(METRICS_INDEX_KEY) as string[] | undefined) ?? [];
+  index.push(key);
+  // Keep the last 1000 metric keys to avoid unbounded growth
+  await storage.set(METRICS_INDEX_KEY, index.slice(-1000));
+}
+
+async function persistMetric(record: MetricRecord): Promise<void> {
+  const key = `${METRICS_PREFIX}${record.issueKey}:${Date.now()}`;
+  await storage.set(key, record);
+  await appendMetricKey(key);
+  console.log('[SQA Metrics]', JSON.stringify(record));
+}
+
+// ─── Public metric recorders ─────────────────────────────────────────────────
+
+export async function recordChecklistResult(
+  issueKey: string,
+  result: ValidationResult,
+): Promise<void> {
+  const type: MetricType = 'checklist_result';
+  const failingItems = result.items.filter((i) => !i.passed).map((i) => i.key);
+  await persistMetric({
+    issueKey,
+    timestamp: new Date().toISOString(),
+    type,
+    data: { passed: result.passed, failingItems },
+  });
+}
+
+export async function recordDuplicatePrevented(
+  issueKey: string,
+  duplicateKey: string,
+): Promise<void> {
+  const type: MetricType = 'duplicate_prevented';
+  await persistMetric({
+    issueKey,
+    timestamp: new Date().toISOString(),
+    type,
+    data: { duplicateKey },
+  });
+}
+
+export async function recordMissingInfo(
+  issueKey: string,
+  failures: string[],
+): Promise<void> {
+  const type: MetricType = 'missing_info';
+  await persistMetric({
+    issueKey,
+    timestamp: new Date().toISOString(),
+    type,
+    data: { failures },
+  });
+}
+
+export async function getMetrics(limit = 100): Promise<MetricRecord[]> {
+  const index = (await storage.get(METRICS_INDEX_KEY) as string[] | undefined) ?? [];
+  const keys = index.slice(-limit);
+  const records = await Promise.all(
+    keys.map(async (k) => storage.get(k) as Promise<MetricRecord | undefined>),
+  );
+  return records.filter((r): r is MetricRecord => r !== undefined);
+}
