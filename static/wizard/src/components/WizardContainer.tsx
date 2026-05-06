@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { invoke } from '@forge/bridge';
 import type { AppConfig, SQABugData } from '../types';
 import { INITIAL_BUG_DATA, WIZARD_STEPS } from '../types';
@@ -17,6 +17,8 @@ import Step6Impact from './steps/Step6Impact';
 import Step7Evidence from './steps/Step7Evidence';
 import Step8Traceability from './steps/Step8Traceability';
 import Step9Classification from './steps/Step9Classification';
+import Step10JiraFields from './steps/Step10JiraFields';
+import type { VersionOption, SprintOption } from './steps/Step10JiraFields';
 import StepDuplicateSearch from './steps/StepDuplicateSearch';
 import StepChecklistReview from './steps/StepChecklistReview';
 
@@ -33,6 +35,26 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
   const [submittedKey, setSubmittedKey] = useState<string | null>(null);
   const [submittedUrl, setSubmittedUrl] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [versions, setVersions] = useState<VersionOption[]>([]);
+  const [components, setComponents] = useState<VersionOption[]>([]);
+  const [sprints, setSprints] = useState<SprintOption[]>([]);
+  const [metaLoading, setMetaLoading] = useState(false);
+
+  useEffect(() => {
+    if (!bugData.projectKey) return;
+    setMetaLoading(true);
+    Promise.all([
+      invoke<{ success: boolean; versions?: VersionOption[] }>('listVersions', { projectKey: bugData.projectKey }),
+      invoke<{ success: boolean; components?: VersionOption[] }>('listComponents', { projectKey: bugData.projectKey }),
+      invoke<{ success: boolean; sprints?: SprintOption[] }>('listSprints', { projectKey: bugData.projectKey }),
+    ]).then(([vRes, cRes, sRes]) => {
+      if (vRes.success && vRes.versions) setVersions(vRes.versions);
+      if (cRes.success && cRes.components) setComponents(cRes.components);
+      if (sRes.success && sRes.sprints) setSprints(sRes.sprints);
+    }).catch(() => {
+      // Non-fatal: project meta is informational
+    }).finally(() => setMetaLoading(false));
+  }, [bugData.projectKey]);
 
   const steps = WIZARD_STEPS;
   const currentStep = steps[currentIndex];
@@ -131,6 +153,7 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
     evidence:         <Step7Evidence {...stepProps} />,
     traceability:     <Step8Traceability {...stepProps} />,
     classification:   <Step9Classification {...stepProps} />,
+    jiraFields:       <Step10JiraFields {...stepProps} versions={versions} components={components} sprints={sprints} metaLoading={metaLoading} />,
     duplicateSearch:  <StepDuplicateSearch {...stepProps} />,
     review:           <StepChecklistReview {...stepProps} isSubmitting={isSubmitting} onSubmit={handleSubmit} />,
   };

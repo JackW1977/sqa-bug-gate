@@ -1,5 +1,5 @@
 import { getAppConfig, saveAppConfig, browseUrl, boardUrl } from '../utils/config';
-import { getProjects } from '../utils/jiraClient';
+import { getProjects, listProjectVersions, listProjectComponents, listProjectSprints } from '../utils/jiraClient';
 import type { AppConfig } from '../utils/sqaInstructionModel';
 
 export async function getConfig(): Promise<{
@@ -53,4 +53,43 @@ export async function listProjects(): Promise<{
 export async function getIssueUrl(issueKey: string): Promise<{ url: string }> {
   const config = await getAppConfig();
   return { url: browseUrl(issueKey, config) };
+}
+
+export async function listVersions(payload: { projectKey: string }): Promise<{
+  success: boolean;
+  versions?: Array<{ id: string; name: string; released: boolean }>;
+  error?: string;
+}> {
+  try {
+    const versions = await listProjectVersions(payload.projectKey);
+    return { success: true, versions };
+  } catch (err) {
+    return { success: false, error: String(err) };
+  }
+}
+
+export async function listComponents(payload: { projectKey: string }): Promise<{
+  success: boolean;
+  components?: Array<{ id: string; name: string }>;
+  error?: string;
+}> {
+  try {
+    const components = await listProjectComponents(payload.projectKey);
+    return { success: true, components };
+  } catch (err) {
+    return { success: false, error: String(err) };
+  }
+}
+
+export async function listSprints(payload: { projectKey: string }): Promise<{
+  success: boolean;
+  sprints?: Array<{ id: string; name: string; state: string }>;
+  error?: string;
+}> {
+  try {
+    const sprints = await listProjectSprints(payload.projectKey);
+    return { success: true, sprints };
+  } catch (err) {
+    return { success: false, error: String(err) };
+  }
 }

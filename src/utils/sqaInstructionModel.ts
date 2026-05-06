@@ -94,6 +94,19 @@ export interface SQAClassificationData {
   priorityRationale: string;
 }
 
+export interface SQAJiraFieldsData {
+  affectsVersions: string[];
+  fixVersions: string[];
+  components: string[];
+  sprint: string;       // sprint ID (string)
+  coreTeam: string;
+  numberOfIncidents: string;
+  relatedSoWItem: string;
+  incidents: string;
+  whereToHaveCaught: string;
+  complexity: string;
+}
+
 export type DuplicateOutcome = 'open_match' | 'closed_match' | 'none' | '';
 
 export interface DuplicateSearchResult {
@@ -127,6 +140,7 @@ export interface SQABugData {
   evidence: SQAEvidenceData;
   traceability: SQATraceabilityData;
   classification: SQAClassificationData;
+  jiraFields: SQAJiraFieldsData;
   duplicateSearch: SQADuplicateSearchData;
 }
 
@@ -166,6 +180,16 @@ export interface IssueGateState {
 
 // ─── App Config ──────────────────────────────────────────────────────────────
 
+export interface CustomFieldIds {
+  sprint?: string;          // default: 'customfield_10020'
+  coreTeam?: string;
+  complexity?: string;
+  whereToHaveCaught?: string;
+  numberOfIncidents?: string;
+  relatedSoWItem?: string;
+  incidents?: string;
+}
+
 export interface AppConfig {
   /** Atlassian Cloud site base URL, e.g. https://noahmed.atlassian.net */
   jiraSiteUrl: string;
@@ -176,6 +200,10 @@ export interface AppConfig {
   /** Workflow status names that trigger the validator gate. */
   gatedStatuses: string[];
   categories: CategoryConfig[];
+  customFieldIds: CustomFieldIds;
+  coreTeamOptions: string[];
+  complexityOptions: string[];
+  whereToHaveCaughtOptions: string[];
 }
 
 // ─── Metrics ─────────────────────────────────────────────────────────────────

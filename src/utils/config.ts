@@ -62,6 +62,19 @@ export const DEFAULT_CONFIG: AppConfig = {
   governedIssueTypes: ['Bug'],
   gatedStatuses: ['Ready for Triage', 'Ready for Dev', 'Triage'],
   categories: DEFAULT_CATEGORIES,
+  customFieldIds: {
+    sprint: 'customfield_10020',
+  },
+  coreTeamOptions: [
+    'Navigation', 'Visualization', 'Robotics', 'Platform', 'User Experience',
+    'Systems Engineering', 'Software Quality Assurance', 'Cloud & DevOps', 'Regulatory',
+  ],
+  complexityOptions: ['Low', 'Medium', 'High', 'Very High'],
+  whereToHaveCaughtOptions: [
+    'Unit Testing', 'Integration Testing', 'System Testing',
+    'Code Review', 'Design Review', 'Requirements Review',
+    'Regression Testing', 'Acceptance Testing', 'Not Applicable',
+  ],
 };
 
 export async function getAppConfig(): Promise<AppConfig> {

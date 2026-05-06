@@ -83,6 +83,19 @@ export interface SQAClassificationData {
   priorityRationale: string;
 }
 
+export interface SQAJiraFieldsData {
+  affectsVersions: string[];
+  fixVersions: string[];
+  components: string[];
+  sprint: string;
+  coreTeam: string;
+  numberOfIncidents: string;
+  relatedSoWItem: string;
+  incidents: string;
+  whereToHaveCaught: string;
+  complexity: string;
+}
+
 export type DuplicateOutcome = 'open_match' | 'closed_match' | 'none' | '';
 
 export interface DuplicateSearchResult {
@@ -116,6 +129,7 @@ export interface SQABugData {
   evidence: SQAEvidenceData;
   traceability: SQATraceabilityData;
   classification: SQAClassificationData;
+  jiraFields: SQAJiraFieldsData;
   duplicateSearch: SQADuplicateSearchData;
 }
 
@@ -131,12 +145,26 @@ export interface ValidationResult {
   items: ChecklistItem[];
 }
 
+export interface CustomFieldIds {
+  sprint?: string;
+  coreTeam?: string;
+  complexity?: string;
+  whereToHaveCaught?: string;
+  numberOfIncidents?: string;
+  relatedSoWItem?: string;
+  incidents?: string;
+}
+
 export interface AppConfig {
   jiraSiteUrl: string;
   governedProjects: string[];
   governedIssueTypes: string[];
   gatedStatuses: string[];
   categories: CategoryConfig[];
+  customFieldIds: CustomFieldIds;
+  coreTeamOptions: string[];
+  complexityOptions: string[];
+  whereToHaveCaughtOptions: string[];
 }
 
 // ─── Wizard-specific ─────────────────────────────────────────────────────────
@@ -152,6 +180,7 @@ export type WizardStep =
   | 'evidence'
   | 'traceability'
   | 'classification'
+  | 'jiraFields'
   | 'duplicateSearch'
   | 'review';
 
@@ -172,6 +201,7 @@ export const WIZARD_STEPS: WizardStepMeta[] = [
   { id: 'evidence', label: 'Evidence' },
   { id: 'traceability', label: 'Traceability', optional: true },
   { id: 'classification', label: 'Classification', optional: true },
+  { id: 'jiraFields', label: 'Jira Fields' },
   { id: 'duplicateSearch', label: 'Duplicate Search' },
   { id: 'review', label: 'Review & Submit' },
 ];
@@ -193,6 +223,11 @@ export const INITIAL_BUG_DATA: SQABugData = {
   evidence: { screenshotReferences: '', videoReferences: '', logDetails: '', testCaseIds: '' },
   traceability: { requirementIds: '', riskItemIds: '', relatedJiraKeys: '' },
   classification: { type: '', impactCategory: '', prioritySuggestion: '', priorityRationale: '' },
+  jiraFields: {
+    affectsVersions: [], fixVersions: [], components: [],
+    sprint: '', coreTeam: '', numberOfIncidents: '',
+    relatedSoWItem: '', incidents: '', whereToHaveCaught: '', complexity: '',
+  },
   duplicateSearch: {
     searchPerformed: false, searchQuery: '', results: [],
     outcome: '', linkedIssueKeys: [],

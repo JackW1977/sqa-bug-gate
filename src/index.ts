@@ -2,7 +2,7 @@ import Resolver from '@forge/resolver';
 import { createBug, getGateState } from './handlers/bugHandler';
 import { searchDuplicates, saveDuplicateOutcome } from './handlers/searchHandler';
 import { getChecklistStatus, validateChecklist } from './handlers/checklistHandler';
-import { getConfig, updateConfig, listProjects, getIssueUrl } from './handlers/configHandler';
+import { getConfig, updateConfig, listProjects, getIssueUrl, listVersions, listComponents, listSprints } from './handlers/configHandler';
 import { getMetrics } from './utils/metrics';
 import { handleWorkflowValidation } from './handlers/workflowValidator';
 
@@ -55,6 +55,18 @@ resolver.define('listProjects', async () => {
 resolver.define('getIssueUrl', async ({ payload }) => {
   const { issueKey } = payload as { issueKey: string };
   return getIssueUrl(issueKey);
+});
+
+resolver.define('listVersions', async ({ payload }) => {
+  return listVersions(payload as { projectKey: string });
+});
+
+resolver.define('listComponents', async ({ payload }) => {
+  return listComponents(payload as { projectKey: string });
+});
+
+resolver.define('listSprints', async ({ payload }) => {
+  return listSprints(payload as { projectKey: string });
 });
 
 // Metrics

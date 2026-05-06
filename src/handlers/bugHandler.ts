@@ -1,5 +1,5 @@
 import { storage } from '@forge/api';
-import type { SQABugData, IssueGateState } from '../utils/sqaInstructionModel';
+import type { SQABugData, IssueGateState, SQAJiraFieldsData } from '../utils/sqaInstructionModel';
 import {
   createJiraIssue,
   addIssueLink,
@@ -80,6 +80,19 @@ function buildDescription(data: SQABugData): string {
     .filter(Boolean)
     .join('\n');
 
+  const jf = data.jiraFields;
+  const jfParts = [
+    jf.coreTeam && `Core Team: ${jf.coreTeam}`,
+    jf.affectsVersions.length && `Affects Versions: ${jf.affectsVersions.join(', ')}`,
+    jf.fixVersions.length && `Fix Versions: ${jf.fixVersions.join(', ')}`,
+    jf.components.length && `Components: ${jf.components.join(', ')}`,
+    jf.complexity && `Complexity: ${jf.complexity}`,
+    jf.whereToHaveCaught && `Where should have been caught: ${jf.whereToHaveCaught}`,
+    jf.numberOfIncidents && `Number of Incidents: ${jf.numberOfIncidents}`,
+    jf.relatedSoWItem && `Related SoW Item: ${jf.relatedSoWItem}`,
+    jf.incidents && `Incidents: ${jf.incidents}`,
+  ].filter(Boolean).join('\n');
+
   const cl = data.classification;
   const clText = [
     cl.type && `Type suggestion: ${cl.type}`,
@@ -102,9 +115,27 @@ function buildDescription(data: SQABugData): string {
   sections['Impact (SQA View)'] = impText;
   sections['Evidence & Attachments'] = evText;
   if (trText) sections['Traceability'] = trText;
+  if (jfParts) sections['Jira Classification Fields'] = jfParts;
   if (clText) sections['Classification Suggestion (SQA)'] = clText;
 
   return formatDescription(sections);
+}
+
+// ─── Custom field builder ─────────────────────────────────────────────────────
+
+function buildCustomFields(
+  jf: SQAJiraFieldsData,
+  config: import('../utils/sqaInstructionModel').AppConfig,
+): Record<string, unknown> {
+  const cf: Record<string, unknown> = {};
+  const ids = config.customFieldIds;
+  if (ids.coreTeam && jf.coreTeam) cf[ids.coreTeam] = { value: jf.coreTeam };
+  if (ids.complexity && jf.complexity) cf[ids.complexity] = { value: jf.complexity };
+  if (ids.whereToHaveCaught && jf.whereToHaveCaught) cf[ids.whereToHaveCaught] = { value: jf.whereToHaveCaught };
+  if (ids.numberOfIncidents && jf.numberOfIncidents) cf[ids.numberOfIncidents] = Number(jf.numberOfIncidents) || 0;
+  if (ids.relatedSoWItem && jf.relatedSoWItem) cf[ids.relatedSoWItem] = jf.relatedSoWItem;
+  if (ids.incidents && jf.incidents) cf[ids.incidents] = jf.incidents;
+  return cf;
 }
 
 // ─── Create Bug ───────────────────────────────────────────────────────────────
@@ -151,6 +182,8 @@ export async function createBug(payload: CreateBugPayload): Promise<CreateBugRes
     ? priorityMap[bugData.classification.prioritySuggestion]
     : undefined;
 
+  const config = await getAppConfig();
+
   let created;
   try {
     created = await createJiraIssue({
@@ -159,6 +192,11 @@ export async function createBug(payload: CreateBugPayload): Promise<CreateBugRes
       description,
       issueType: 'Bug',
       priority,
+      affectsVersions: bugData.jiraFields.affectsVersions,
+      fixVersions: bugData.jiraFields.fixVersions,
+      components: bugData.jiraFields.components,
+      sprintId: bugData.jiraFields.sprint || undefined,
+      customFields: buildCustomFields(bugData.jiraFields, config),
     });
   } catch (err) {
     return { success: false, error: String(err) };
@@ -188,8 +226,6 @@ export async function createBug(payload: CreateBugPayload): Promise<CreateBugRes
       }
     }
   }
-
-  const config = await getAppConfig();
   return {
     success: true,
     issueKey: created.key,
