@@ -1,5 +1,6 @@
-import type { SQABugData, DuplicateSearchResult } from './sqaInstructionModel';
+import type { SQABugData, DuplicateSearchResult, AppConfig } from './sqaInstructionModel';
 import { searchIssues } from './jiraClient';
+import { browseUrl } from './config';
 
 // ─── JQL builders ────────────────────────────────────────────────────────────
 
@@ -63,6 +64,7 @@ export interface DuplicateSearchResponse {
   closedResults: DuplicateSearchResult[];
   openJql: string;
   closedJql: string;
+  jiraSiteUrl: string;
 }
 
 function extractDescriptionText(description: unknown): string {
@@ -83,16 +85,19 @@ function extractDescriptionText(description: unknown): string {
   }
 }
 
-function mapIssue(issue: {
-  key: string;
-  fields: {
-    summary: string;
-    status: { name: string; statusCategory: { key: string } };
-    description?: unknown;
-    assignee?: { displayName: string } | null;
-    created: string;
-  };
-}): DuplicateSearchResult {
+function mapIssue(
+  issue: {
+    key: string;
+    fields: {
+      summary: string;
+      status: { name: string; statusCategory: { key: string } };
+      description?: unknown;
+      assignee?: { displayName: string } | null;
+      created: string;
+    };
+  },
+  config: AppConfig,
+): DuplicateSearchResult {
   return {
     key: issue.key,
     summary: issue.fields.summary,
@@ -101,11 +106,13 @@ function mapIssue(issue: {
     description: extractDescriptionText(issue.fields.description),
     assignee: issue.fields.assignee?.displayName,
     created: issue.fields.created,
+    url: browseUrl(issue.key, config),
   };
 }
 
 export async function performDuplicateSearch(
   data: SQABugData,
+  config: AppConfig,
 ): Promise<DuplicateSearchResponse> {
   const openJql = buildOpenDuplicateJQL(data);
   const closedJql = buildClosedDuplicateJQL(data);
@@ -116,9 +123,10 @@ export async function performDuplicateSearch(
   ]);
 
   return {
-    openResults: openSearch.issues.map(mapIssue),
-    closedResults: closedSearch.issues.map(mapIssue),
+    openResults: openSearch.issues.map((i) => mapIssue(i, config)),
+    closedResults: closedSearch.issues.map((i) => mapIssue(i, config)),
     openJql,
     closedJql,
+    jiraSiteUrl: config.jiraSiteUrl,
   };
 }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SQA Bug Gate — UI Preview</title>
+  <title>SQA Bug Gate — Preview (noahmed / SW)</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -11,6 +11,7 @@
     *, *::before, *::after { box-sizing: border-box; }
     body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #F4F5F7; }
     input, select, textarea, button { font-family: inherit; }
+    a { color: #0052CC; }
     :root {
       --blue: #0052CC; --blue-light: #DEEBFF; --blue-dark: #0747A6;
       --green: #00875A; --green-light: #E3FCEF;
@@ -25,8 +26,19 @@
 <div id="root"></div>
 <script type="text/babel">
 
-// ─── Data ────────────────────────────────────────────────────────────────────
+// ─── Config (mirrors backend DEFAULT_CONFIG) ──────────────────────────────────
+const CONFIG = {
+  jiraSiteUrl: "https://noahmed.atlassian.net",
+  boardUrl: "https://noahmed.atlassian.net/jira/software/c/projects/SW/boards/49",
+  governedProjects: ["SW"],
+  gatedStatuses: ["Ready for Triage", "Ready for Dev", "Triage"],
+};
 
+function browseUrl(key) {
+  return `${CONFIG.jiraSiteUrl}/browse/${key}`;
+}
+
+// ─── Categories ───────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { value: "R&C",   label: "R&C – Robotic & Camera",           subs: ["BC (Bronchoscope)"] },
   { value: "RA",    label: "RA – Robot Arm",                    subs: ["Robot Arm"] },
@@ -40,6 +52,41 @@ const CATEGORIES = [
   { value: "UI/UX", label: "UI/UX – User Interface",            subs: ["N/A"] },
 ];
 
+// ─── Realistic SW mock issues ─────────────────────────────────────────────────
+const MOCK_OPEN = [
+  {
+    key: "SW-4821",
+    summary: "[R&C]-[BC (Bronchoscope)]: Scope view fails to initialize and remains black when connecting USB scope on cold-boot system",
+    status: "Open", assignee: "Emily Chen",
+    desc: "Clinician unable to visualize bronchoscope at procedure start. Scope LED active but feed not displayed. Reproducible 3/3 on cold boot.",
+    created: "2025-04-28",
+  },
+  {
+    key: "SW-4756",
+    summary: "[R&C]-[BC (Bronchoscope)]: Bronchoscope view intermittently freezes mid-navigation when making sharp turn at bifurcation",
+    status: "In Progress", assignee: "Marcus Liu",
+    desc: "Freeze lasts 3–8 seconds, resumes automatically. Observed in 2/10 runs with BC-12 scope. No error logged.",
+    created: "2025-04-19",
+  },
+];
+
+const MOCK_CLOSED = [
+  {
+    key: "SW-3944",
+    summary: "[R&C]-[BC (Bronchoscope)]: Scope feed delayed >10s on new session start after TPS restart",
+    status: "Done", assignee: "Emily Chen",
+    desc: "Fixed in 1C.2 build 1.2.0.1-41. USB driver initialisation timeout resolved. May be regression if re-observed in 1D.0.",
+    created: "2024-11-12",
+  },
+  {
+    key: "SW-3601",
+    summary: "[R&C]-[BC (Bronchoscope)]: Black screen on scope view during robot arm homing sequence",
+    status: "Won't Fix", assignee: "Sarah Kim",
+    desc: "By design: scope feed pauses during homing for safety. Clarification added to operator manual.",
+    created: "2024-09-03",
+  },
+];
+
 const WIZARD_STEPS = [
   "Project", "Summary", "Environment", "Preconditions",
   "Steps to Reproduce", "Expected vs Actual", "Impact",
@@ -48,7 +95,7 @@ const WIZARD_STEPS = [
 ];
 
 const INITIAL = {
-  projectKey: "", category: "", subCategory: "", problemStatement: "",
+  projectKey: "SW", category: "", subCategory: "", problemStatement: "",
   conditionClause: "", softwareVersion: "", branchRelease: "", buildNumber: "",
   hardwareConfig: "", mode: "", unknownReason: "",
   preconditions: "", noPreconditions: false, noPreconditionsExp: "",
@@ -62,10 +109,11 @@ const INITIAL = {
   searchDone: false, searchResults: [], dupOutcome: "", dupLinked: [],
 };
 
-// ─── Common ──────────────────────────────────────────────────────────────────
-
+// ─── Shared styles ────────────────────────────────────────────────────────────
 const inp = { width:"100%", padding:"8px 10px", border:"2px solid var(--gray-100)",
   borderRadius:"4px", fontSize:"14px", outline:"none" };
+
+// ─── Common components ────────────────────────────────────────────────────────
 
 function Field({ label, required, hint, error, children }) {
   return (
@@ -97,12 +145,26 @@ function Banner({ type="info", title, children }) {
   );
 }
 
-// ─── Progress bar ────────────────────────────────────────────────────────────
+// ─── Debug toolbar ────────────────────────────────────────────────────────────
+
+function DebugBar({ step, totalSteps }) {
+  return (
+    <div style={{background:"#1B2A4A",color:"#8FC3F7",fontSize:12,padding:"6px 20px",
+      display:"flex",gap:20,alignItems:"center",flexWrap:"wrap"}}>
+      <span>🔧 <strong style={{color:"#fff"}}>DEBUG MODE</strong></span>
+      <span>Site: <a href={CONFIG.jiraSiteUrl} target="_blank" style={{color:"#7EC8FF"}}>{CONFIG.jiraSiteUrl}</a></span>
+      <span>Project: <a href={CONFIG.boardUrl} target="_blank" style={{color:"#7EC8FF"}}>SW (Board 49)</a></span>
+      <span>Gate statuses: {CONFIG.gatedStatuses.join(", ")}</span>
+      <span style={{marginLeft:"auto"}}>Step {step+1}/{totalSteps}</span>
+    </div>
+  );
+}
+
+// ─── Progress ─────────────────────────────────────────────────────────────────
 
 function Progress({ steps, current }) {
   return (
-    <div style={{display:"flex",alignItems:"center",overflowX:"auto",
-      paddingBottom:8,marginBottom:20,gap:0}}>
+    <div style={{display:"flex",alignItems:"center",overflowX:"auto",paddingBottom:8,marginBottom:20}}>
       {steps.map((s, i) => {
         const done = i < current, active = i === current;
         return (
@@ -110,9 +172,9 @@ function Progress({ steps, current }) {
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",minWidth:56}}>
               <div style={{width:26,height:26,borderRadius:"50%",display:"flex",
                 alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,
-                background: done?"var(--green)":active?"var(--blue)":"var(--gray-100)",
-                color: done||active?"#fff":"var(--gray-500)"}}>
-                {done ? "✓" : i+1}
+                background:done?"var(--green)":active?"var(--blue)":"var(--gray-100)",
+                color:done||active?"#fff":"var(--gray-500)"}}>
+                {done?"✓":i+1}
               </div>
               <span style={{fontSize:9,marginTop:3,textAlign:"center",whiteSpace:"nowrap",
                 fontWeight:active?700:400,
@@ -120,10 +182,8 @@ function Progress({ steps, current }) {
                 {s}
               </span>
             </div>
-            {i < steps.length-1 && (
-              <div style={{flex:1,height:2,background:done?"var(--green)":"var(--gray-100)",
-                minWidth:8,marginBottom:16}} />
-            )}
+            {i<steps.length-1 && <div style={{flex:1,height:2,
+              background:done?"var(--green)":"var(--gray-100)",minWidth:8,marginBottom:16}} />}
           </React.Fragment>
         );
       })}
@@ -131,11 +191,8 @@ function Progress({ steps, current }) {
   );
 }
 
-// ─── Nav buttons ─────────────────────────────────────────────────────────────
-
 function Nav({ idx, total, canNext, isLast, isSubmitting, onBack, onNext, onSubmit }) {
-  const btn = { padding:"8px 18px",borderRadius:4,fontSize:14,fontWeight:500,
-    cursor:"pointer",border:"none" };
+  const btn = { padding:"8px 18px",borderRadius:4,fontSize:14,fontWeight:500,cursor:"pointer",border:"none" };
   return (
     <div style={{display:"flex",justifyContent:"space-between",marginTop:20,
       paddingTop:14,borderTop:"1px solid var(--gray-100)"}}>
@@ -144,7 +201,7 @@ function Nav({ idx, total, canNext, isLast, isSubmitting, onBack, onNext, onSubm
       {isLast
         ? <button style={{...btn,background:canNext?"var(--green)":"var(--gray-300)",color:"#fff"}}
             onClick={onSubmit} disabled={!canNext||isSubmitting}>
-            {isSubmitting ? "Creating…" : "✓ Create SQA Bug"}
+            {isSubmitting?"Creating…":"✓ Create SQA Bug in SW"}
           </button>
         : <button style={{...btn,background:canNext?"var(--blue)":"var(--gray-300)",color:"#fff"}}
             onClick={onNext} disabled={!canNext}>Next →</button>
@@ -153,43 +210,42 @@ function Nav({ idx, total, canNext, isLast, isSubmitting, onBack, onNext, onSubm
   );
 }
 
-// ─── Step 0 – Project ────────────────────────────────────────────────────────
+// ─── Step 0 – Project ─────────────────────────────────────────────────────────
 
 function StepProject({ d, set }) {
-  const projects = [
-    {key:"NOAM",name:"Noah Medical — AM"},
-    {key:"NOVA",name:"Noah Medical — Platform"},
-    {key:"SQA", name:"SQA Verification"},
-    {key:"INT", name:"Integration & Regression"},
-  ];
   return (
     <div>
       <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>Select Project</h3>
       <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
-        Choose the Jira project where this SQA bug will be created.
+        Governed projects configured for this installation.
       </p>
       <Field label="Jira Project" required>
         <select value={d.projectKey} onChange={e=>set({projectKey:e.target.value})} style={inp}>
           <option value="">— Select a project —</option>
-          {projects.map(p=><option key={p.key} value={p.key}>{p.name} ({p.key})</option>)}
+          <option value="SW">Noah Medical Platform (SW)</option>
         </select>
       </Field>
+      {d.projectKey === "SW" && (
+        <Banner type="success">
+          ✓ Project <strong>SW</strong> is governed by the SQA Bug Gate.
+          {" "}<a href={CONFIG.boardUrl} target="_blank">Open SW Board ↗</a>
+        </Banner>
+      )}
     </div>
   );
 }
 
-// ─── Step 1 – Summary ────────────────────────────────────────────────────────
+// ─── Step 1 – Summary ─────────────────────────────────────────────────────────
 
 function StepSummary({ d, set }) {
   const subs = CATEGORIES.find(c=>c.value===d.category)?.subs ?? [];
   const assembled = d.category && d.subCategory && d.problemStatement
     ? `[${d.category}]-[${d.subCategory}]: ${d.problemStatement}${d.conditionClause?" "+d.conditionClause:""}`
     : "";
-  const err = !d.category ? "Select a category."
-    : !d.subCategory ? "Select a sub-category."
-    : d.problemStatement.trim().length < 10 ? "Problem statement too short — be specific."
-    : !d.conditionClause.trim() ? "Add a 'when/condition' clause."
-    : null;
+  const err = !d.category?"Select a category."
+    :!d.subCategory?"Select a sub-category."
+    :d.problemStatement.trim().length<10?"Problem statement too short — be specific."
+    :!d.conditionClause.trim()?"Add a 'when/condition' clause.":null;
   return (
     <div>
       <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>1 — Summary</h3>
@@ -213,22 +269,17 @@ function StepSummary({ d, set }) {
           </select>
         </Field>
       </div>
-      <Field label="Problem Statement (user-visible symptom)" required
-        hint="What does the user observe? No root-cause guesses.">
-        <input type="text" value={d.problemStatement}
-          placeholder="e.g. Bronchoscope view freezes and turns black"
+      <Field label="Problem Statement (user-visible symptom)" required hint="What does the user observe? No root-cause guesses.">
+        <input type="text" value={d.problemStatement} placeholder="e.g. Bronchoscope view freezes and turns black"
           onChange={e=>set({problemStatement:e.target.value})} style={inp} />
       </Field>
-      <Field label="When / Under What Condition" required
-        hint="e.g. when connecting via USB on a cold boot">
-        <input type="text" value={d.conditionClause}
-          placeholder="e.g. when starting a new procedure after TPS restart"
+      <Field label="When / Under What Condition" required hint="e.g. when connecting via USB on a cold boot">
+        <input type="text" value={d.conditionClause} placeholder="e.g. when starting a new procedure after TPS restart"
           onChange={e=>set({conditionClause:e.target.value})} style={inp} />
       </Field>
       {assembled && (
-        <div style={{background:"var(--gray-50)",border:"1px solid var(--gray-100)",
-          borderRadius:4,padding:"10px 14px",marginTop:6}}>
-          <p style={{margin:"0 0 4px",fontSize:11,fontWeight:700,color:"var(--gray-500)"}}>ASSEMBLED SUMMARY PREVIEW</p>
+        <div style={{background:"var(--gray-50)",border:"1px solid var(--gray-100)",borderRadius:4,padding:"10px 14px",marginTop:6}}>
+          <p style={{margin:"0 0 4px",fontSize:11,fontWeight:700,color:"var(--gray-500)"}}>ASSEMBLED SUMMARY PREVIEW — SW project</p>
           <p style={{margin:0,fontSize:14,color:"var(--gray-900)",fontWeight:500}}>{assembled}</p>
         </div>
       )}
@@ -236,21 +287,19 @@ function StepSummary({ d, set }) {
   );
 }
 
-// ─── Step 2 – Environment ─────────────────────────────────────────────────────
+// ─── Step 2 – Environment ──────────────────────────────────────────────────────
 
 function StepEnvironment({ d, set }) {
   return (
     <div>
       <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>2 — Environment</h3>
-      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
-        All fields required unless unknown — use the "Unknown – reason" field to explain gaps.
-      </p>
+      <Banner type="info">Tip for SW: use the format <strong>1D.0 dev / 1.4.0.1-XX</strong> or <strong>1D.0 release / 1.4.0.1-YY</strong> for branch/build.</Banner>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
         <Field label="Software Version / Build ID" required hint="e.g. 1.4.0.1-37">
           <input type="text" value={d.softwareVersion} placeholder="1.4.0.1-37"
             onChange={e=>set({softwareVersion:e.target.value})} style={inp} />
         </Field>
-        <Field label="Branch / Release Line" required hint="e.g. 1D.0 dev">
+        <Field label="Branch / Release Line" required hint="1C.2 / 1D.0 dev / 1D.0 release">
           <input type="text" value={d.branchRelease} placeholder="1D.0 dev"
             onChange={e=>set({branchRelease:e.target.value})} style={inp} />
         </Field>
@@ -258,18 +307,17 @@ function StepEnvironment({ d, set }) {
           <input type="text" value={d.buildNumber} placeholder="1.4.0.1-XX"
             onChange={e=>set({buildNumber:e.target.value})} style={inp} />
         </Field>
-        <Field label="Mode / Key Settings" required hint="Simulation vs live, feature flags, locale">
-          <input type="text" value={d.mode} placeholder="Live, EN-US, Wi-Fi"
+        <Field label="Mode / Key Settings" required hint="Simulation vs live, feature flags, locale, network">
+          <input type="text" value={d.mode} placeholder="Live, EN-US, Wi-Fi, Fluoroscopy ON"
             onChange={e=>set({mode:e.target.value})} style={inp} />
         </Field>
       </div>
-      <Field label="Hardware Configuration" required hint="System type, TIC model, controller, peripherals">
+      <Field label="Hardware Configuration" required hint="System type, TIC model, controller, scope, peripherals">
         <textarea rows={3} value={d.hardwareConfig}
-          placeholder="e.g. NovaCyclone Gen2, TIC v4, USB bronchoscope BC-12, standard OR cart"
-          onChange={e=>set({hardwareConfig:e.target.value})}
-          style={{...inp,resize:"vertical"}} />
+          placeholder="e.g. NovaCyclone Gen2, TIC v4, USB bronchoscope BC-12, standard OR cart, Win11 TPS workstation"
+          onChange={e=>set({hardwareConfig:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
-      <Field label="Unknown – Reason" hint="Fill if any field above is genuinely unknown">
+      <Field label="Unknown – Reason" hint="Fill if any field is genuinely unknown (e.g. historic re-test)">
         <textarea rows={2} value={d.unknownReason}
           placeholder="e.g. Historic re-test – build ID not recorded in test log"
           onChange={e=>set({unknownReason:e.target.value})}
@@ -279,18 +327,17 @@ function StepEnvironment({ d, set }) {
   );
 }
 
-// ─── Step 3 – Preconditions ───────────────────────────────────────────────────
+// ─── Step 3 – Preconditions ────────────────────────────────────────────────────
 
 function StepPreconditions({ d, set }) {
   return (
     <div>
       <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>3 — Preconditions</h3>
       <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
-        Describe the system state before step 1: uptime, user role, data loaded, prior actions.
+        Describe the exact system state before step 1: uptime, connection state, user role, prior actions.
       </p>
       <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,cursor:"pointer"}}>
-        <input type="checkbox" checked={d.noPreconditions}
-          onChange={e=>set({noPreconditions:e.target.checked})} />
+        <input type="checkbox" checked={d.noPreconditions} onChange={e=>set({noPreconditions:e.target.checked})} />
         <span style={{fontWeight:500,fontSize:14}}>No special preconditions</span>
       </label>
       {d.noPreconditions ? (
@@ -300,11 +347,10 @@ function StepPreconditions({ d, set }) {
             onChange={e=>set({noPreconditionsExp:e.target.value})} style={inp} />
         </Field>
       ) : (
-        <Field label="Preconditions" required hint="List each on its own line or as a numbered list.">
+        <Field label="Preconditions" required hint="List each on its own line.">
           <textarea rows={5} value={d.preconditions}
-            placeholder={"1. System powered on and at home screen\n2. User logged in as clinical operator\n3. USB scope BC-12 connected"}
-            onChange={e=>set({preconditions:e.target.value})}
-            style={{...inp,resize:"vertical"}} />
+            placeholder={"1. System at home screen after clean boot (≥5 min uptime)\n2. Logged in as Clinical Operator\n3. No active case in progress\n4. BC-12 USB scope connected and LED green\n5. TPS planning complete for test case #TC-4521"}
+            onChange={e=>set({preconditions:e.target.value})} style={{...inp,resize:"vertical"}} />
         </Field>
       )}
     </div>
@@ -314,21 +360,19 @@ function StepPreconditions({ d, set }) {
 // ─── Step 4 – Steps to Reproduce ──────────────────────────────────────────────
 
 function StepRepro({ d, set }) {
-  function updateStep(i, v) {
-    const s = [...d.steps]; s[i]=v; set({steps:s});
-  }
+  function updateStep(i, v) { const s=[...d.steps]; s[i]=v; set({steps:s}); }
   function addStep() { set({steps:[...d.steps,""]}); }
   function removeStep(i) { if(d.steps.length<=1) return; set({steps:d.steps.filter((_,j)=>j!==i)}); }
-  const REPRO_OPTS = ["3/3","2/3","1/3","5/5","2/5","1/5","2/10","1/10","Observed once","Consistent","Intermittent"];
+  const REPRO = ["3/3","2/3","1/3","5/5","2/5","1/5","2/10","1/10","Observed once","Consistent","Intermittent"];
   return (
     <div>
       <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>4 — Steps to Reproduce</h3>
       <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
-        Number every action from a known starting state. Be concrete enough for another engineer to follow cold.
+        Number every action from a known starting state. Another SW engineer must be able to follow these steps cold.
       </p>
       <Field label="Initial State" required hint="What is the system state before step 1?">
         <input type="text" value={d.initialState}
-          placeholder="e.g. System at home screen, scope connected, no active case"
+          placeholder="e.g. At home screen, BC-12 scope connected, no active case, TPS planning complete"
           onChange={e=>set({initialState:e.target.value})} style={inp} />
       </Field>
       <div style={{marginBottom:14}}>
@@ -338,12 +382,9 @@ function StepRepro({ d, set }) {
         {d.steps.map((step,i)=>(
           <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
             <div style={{minWidth:24,height:24,background:"var(--blue)",color:"#fff",borderRadius:"50%",
-              display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700}}>
-              {i+1}
-            </div>
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700}}>{i+1}</div>
             <input type="text" value={step} placeholder={`Step ${i+1}…`}
-              onChange={e=>updateStep(i,e.target.value)}
-              style={{...inp,flex:1}} />
+              onChange={e=>updateStep(i,e.target.value)} style={{...inp,flex:1}} />
             <button onClick={()=>removeStep(i)} disabled={d.steps.length<=1}
               style={{padding:"5px 9px",background:"var(--red-light)",color:"var(--red-dark)",
                 border:"1px solid #FFBDAD",borderRadius:4,cursor:"pointer",fontSize:13}}>×</button>
@@ -351,22 +392,19 @@ function StepRepro({ d, set }) {
         ))}
         <button onClick={addStep}
           style={{padding:"5px 13px",background:"var(--blue-light)",color:"var(--blue)",
-            border:"1px solid #B3D4FF",borderRadius:4,cursor:"pointer",fontSize:13,marginTop:2}}>
-          + Add Step
-        </button>
+            border:"1px solid #B3D4FF",borderRadius:4,cursor:"pointer",fontSize:13,marginTop:2}}>+ Add Step</button>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
         <Field label="Reproducibility Rate" required>
           <select value={d.reproducibility} onChange={e=>set({reproducibility:e.target.value})} style={inp}>
             <option value="">— Select —</option>
-            {REPRO_OPTS.map(o=><option key={o} value={o}>{o}</option>)}
+            {REPRO.map(o=><option key={o} value={o}>{o}</option>)}
           </select>
         </Field>
         <Field label="Intermittent / Pattern Notes">
           <textarea rows={2} value={d.intermittentNotes}
-            placeholder="e.g. Occurs only when scope temp is low"
-            onChange={e=>set({intermittentNotes:e.target.value})}
-            style={{...inp,resize:"vertical"}} />
+            placeholder="e.g. Only on cold boot; not reproducible after warm restart"
+            onChange={e=>set({intermittentNotes:e.target.value})} style={{...inp,resize:"vertical"}} />
         </Field>
       </div>
     </div>
@@ -380,61 +418,54 @@ function StepExpAct({ d, set }) {
     <div>
       <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>5 — Expected vs Actual Behavior</h3>
       <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
-        Expected = what the product should do. Actual = what it did. Root-cause theories go in Notes only.
+        Expected = per design/requirements. Actual = what was observed. Root-cause theories → Notes only.
       </p>
-      <Field label="Expected Behavior" required hint="Describe the correct, intended user-facing behavior.">
+      <Field label="Expected Behavior" required hint="Correct, intended user-facing behavior.">
         <textarea rows={4} value={d.expectedBehavior}
-          placeholder="e.g. The bronchoscope view should display a live video feed within 3 seconds of connection."
-          onChange={e=>set({expectedBehavior:e.target.value})}
-          style={{...inp,resize:"vertical"}} />
+          placeholder="e.g. The bronchoscope live feed should appear in the SW navigation view within 3 seconds of the scope being detected."
+          onChange={e=>set({expectedBehavior:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
-      <Field label="Actual Behavior" required hint="Describe exactly what was observed, including any error messages or UI state.">
+      <Field label="Actual Behavior" required hint="Exactly what was observed, including UI state and error messages.">
         <textarea rows={4} value={d.actualBehavior}
-          placeholder="e.g. The view remains black with a spinner indefinitely. No error message displayed. Scope LED is active."
-          onChange={e=>set({actualBehavior:e.target.value})}
-          style={{...inp,resize:"vertical"}} />
+          placeholder="e.g. The navigation view remains black with an infinite spinner. No error toast. The BC-12 LED is solid green indicating hardware is active. Timeout occurs after ~60s with 'Scope connection lost' error."
+          onChange={e=>set({actualBehavior:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
-      <Field label="Notes / Suspected Cause" hint="Optional — root-cause theories, related observations.">
+      <Field label="Notes / Suspected Cause" hint="Optional — theories, related observations (SW log patterns, prior tickets).">
         <textarea rows={3} value={d.notes}
-          placeholder="e.g. May be related to USB driver initialisation timeout seen in logs."
-          onChange={e=>set({notes:e.target.value})}
-          style={{...inp,resize:"vertical"}} />
+          placeholder="e.g. SW-3944 was a similar symptom fixed in 1C.2; may be regression. TPS log shows USB initialisation timeout at T+2.1s."
+          onChange={e=>set({notes:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
     </div>
   );
 }
 
-// ─── Step 6 – Impact ─────────────────────────────────────────────────────────
+// ─── Step 6 – Impact ──────────────────────────────────────────────────────────
 
 function StepImpact({ d, set }) {
   return (
     <div>
       <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>6 — Impact (SQA View)</h3>
       <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
-        Describe impact in user and workflow terms to help triage understand urgency.
+        Describe impact in user/workflow terms to help triage understand urgency.
       </p>
       <Field label="User / Workflow Impact" required hint="Delays, interruptions, repeated steps, lost confidence.">
         <textarea rows={4} value={d.userWorkflowImpact}
-          placeholder="e.g. Clinician cannot visualise scope during navigation. Session restart required (~10 min delay). Observed in 3 simulations."
-          onChange={e=>set({userWorkflowImpact:e.target.value})}
-          style={{...inp,resize:"vertical"}} />
+          placeholder="e.g. Clinician cannot visualise scope during the navigation phase of every procedure. Full session restart required (~10 min delay). Observed in 3 of 3 phantom simulations on affected hardware."
+          onChange={e=>set({userWorkflowImpact:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
       <Field label="Safety Relevance" hint="Only if patient safety is evidently affected.">
         <textarea rows={2} value={d.safetyRelevance}
-          placeholder="Leave blank if no evident safety concern."
-          onChange={e=>set({safetyRelevance:e.target.value})}
-          style={{...inp,resize:"vertical"}} />
+          placeholder="e.g. If undetected in clinical use, operator could proceed without scope visualisation."
+          onChange={e=>set({safetyRelevance:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
       <Field label="Workaround Description">
         <textarea rows={2} value={d.workaroundDesc}
-          placeholder="e.g. Disconnect and reconnect USB scope; restart TPS session."
-          onChange={e=>set({workaroundDesc:e.target.value})}
-          style={{...inp,resize:"vertical"}} />
+          placeholder="e.g. Disconnect USB scope, wait 10s, reconnect. Restores feed in ~80% of attempts."
+          onChange={e=>set({workaroundDesc:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
         <Field label="Workaround Practicality" required>
-          <select value={d.workaroundPracticality}
-            onChange={e=>set({workaroundPracticality:e.target.value})} style={inp}>
+          <select value={d.workaroundPracticality} onChange={e=>set({workaroundPracticality:e.target.value})} style={inp}>
             <option value="">— Select —</option>
             <option value="trivial">Trivial (quick, no disruption)</option>
             <option value="acceptable">Acceptable (minor effort)</option>
@@ -462,27 +493,26 @@ function StepEvidence({ d, set }) {
     <div>
       <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>7 — Evidence & Attachments</h3>
       <Banner type="info">
-        ℹ️ <strong>Attach files in Jira:</strong> After the bug is created, drag screenshots, videos, and log
-        files onto the Jira issue. Reference their names below.
+        ℹ️ Attach actual files to the SW Jira issue after creation. Reference file names/locations below.
       </Banner>
       <Field label="Screenshot / Photo References">
         <textarea rows={2} value={d.screenshots}
-          placeholder="e.g. scope_black_screen_2024-01-15.png"
+          placeholder="e.g. SW_scope_black_screen_2025-05-06_14-32.png, tps_ui_state_after_timeout.png"
           onChange={e=>set({screenshots:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
       <Field label="Video References">
         <textarea rows={2} value={d.videos}
-          placeholder="e.g. repro_2024-01-15_14-32.mp4 (scope disconnect sequence)"
+          placeholder="e.g. SW_repro_cold_boot_2025-05-06.mp4 (90s, captures full repro sequence)"
           onChange={e=>set({videos:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
-      <Field label="Log Collection Details" hint="Tool name, time window, timezone.">
+      <Field label="Log Collection Details" hint="Tool name, time window, timezone. Critical for SW diagnostics.">
         <textarea rows={3} value={d.logs}
-          placeholder="e.g. TPS system log, 2024-01-15 14:30–14:35 UTC-8, via Log Collector v2.1."
+          placeholder="e.g. TPS system log: 2025-05-06 14:28–14:35 UTC-7, collected via Log Collector v2.1. Scope driver log same window. Robot arm CAN bus log not relevant."
           onChange={e=>set({logs:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
       <Field label="Test Case IDs / Run IDs / Plan Links">
         <textarea rows={2} value={d.testIds}
-          placeholder="e.g. TC-4521, TC-4522; Run ID: TR-1892; Plan: TP-Nav-1D.0"
+          placeholder="e.g. TC-4521, TC-4522; Run: TR-1892 (SW 1D.0 Regression Cycle); Plan: TP-Nav-1D.0"
           onChange={e=>set({testIds:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
     </div>
@@ -495,17 +525,17 @@ function StepTrace({ d, set }) {
   return (
     <div>
       <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>8 — Traceability Links</h3>
-      <Banner type="info">All fields on this step are optional. Leave blank if links are unknown.</Banner>
-      <Field label="Requirement ID(s)" hint="e.g. REQ-1042, REQ-1053">
-        <input type="text" value={d.reqIds} placeholder="REQ-1042"
+      <Banner type="info">All fields optional. Do not guess requirement IDs.</Banner>
+      <Field label="Requirement ID(s)" hint="SW requirement IDs, e.g. SW-REQ-1042">
+        <input type="text" value={d.reqIds} placeholder="SW-REQ-1042, SW-REQ-1053"
           onChange={e=>set({reqIds:e.target.value})} style={inp} />
       </Field>
-      <Field label="Risk Item ID(s)">
+      <Field label="Risk Item ID(s)" hint="e.g. RISK-214">
         <input type="text" value={d.riskIds} placeholder="RISK-214"
           onChange={e=>set({riskIds:e.target.value})} style={inp} />
       </Field>
-      <Field label="Related Jira Keys" hint="Duplicates (closed), similar bugs, linked improvements.">
-        <input type="text" value={d.relatedKeys} placeholder="PROJ-1234, PROJ-1256"
+      <Field label="Related SW Jira Keys" hint="Duplicates (closed), similar bugs, linked improvements.">
+        <input type="text" value={d.relatedKeys} placeholder="SW-3944, SW-4756"
           onChange={e=>set({relatedKeys:e.target.value})} style={inp} />
       </Field>
     </div>
@@ -518,36 +548,30 @@ function StepClass({ d, set }) {
   return (
     <div>
       <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>9 — Classification Suggestion</h3>
-      <Banner type="warning">
-        ⚠️ <strong>SQA suggestion only.</strong> Final severity and priority are set by triage/product/engineering.
-      </Banner>
+      <Banner type="warning">⚠️ SQA suggestion only — final severity/priority set by triage/product/engineering.</Banner>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
         <Field label="Type">
           <select value={d.bugType} onChange={e=>set({bugType:e.target.value})} style={inp}>
-            <option value="">— Optional —</option>
-            <option>Bug</option><option>Improvement</option>
+            <option value="">— Optional —</option><option>Bug</option><option>Improvement</option>
           </select>
         </Field>
         <Field label="Impact Category">
           <select value={d.impactCat} onChange={e=>set({impactCat:e.target.value})} style={inp}>
             <option value="">— Optional —</option>
-            <option>Minor</option><option>Intermediate</option>
-            <option>Major</option><option>Blocker</option>
+            <option>Minor</option><option>Intermediate</option><option>Major</option><option>Blocker</option>
           </select>
         </Field>
         <Field label="Priority Suggestion">
           <select value={d.prioritySug} onChange={e=>set({prioritySug:e.target.value})} style={inp}>
             <option value="">— Optional —</option>
-            <option>Highest</option><option>High</option>
-            <option>Medium</option><option>Low</option>
+            <option>Highest</option><option>High</option><option>Medium</option><option>Low</option>
           </select>
         </Field>
       </div>
       <Field label="Priority Rationale" hint="Required if Blocker.">
         <textarea rows={3} value={d.priorityRationale}
-          placeholder="e.g. Blocks the core navigation workflow in every procedure; no workaround in simulation mode."
-          onChange={e=>set({priorityRationale:e.target.value})}
-          style={{...inp,resize:"vertical"}} />
+          placeholder="e.g. Blocks core navigation workflow in every SW procedure on affected hardware; workaround cumbersome and not acceptable for clinical use."
+          onChange={e=>set({priorityRationale:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
     </div>
   );
@@ -555,78 +579,85 @@ function StepClass({ d, set }) {
 
 // ─── Step 10 – Duplicate Search ───────────────────────────────────────────────
 
-const MOCK_RESULTS = [
-  {key:"NOAM-812", summary:"[R&C]-[BC]: Scope view blacks out during initialisation on cold start", status:"Open", cat:"new", desc:"Reported by SQA 2024-01-03. Scope remains black after USB connection on cold-boot systems."},
-  {key:"NOAM-654", summary:"[R&C]-[BC]: Bronchoscope view intermittently freezes mid-procedure", status:"In Progress", cat:"new", desc:"Intermittent freeze observed in 2/10 runs. Different trigger than current issue."},
-  {key:"NOAM-443", summary:"[R&C]-[BC]: Scope feed delayed >10s on session start", status:"Done", cat:"done", desc:"Fixed in 1C.2 build. May be related — verify if regression."},
-];
-
 function StepDupSearch({ d, set }) {
   const [searching, setSearching] = React.useState(false);
-  const [results, setResults] = React.useState(d.searchDone ? MOCK_RESULTS : []);
+  const [open, setOpen] = React.useState([]);
+  const [closed, setClosed] = React.useState([]);
   const [outcome, setOutcome] = React.useState(d.dupOutcome);
   const [selectedKey, setSelectedKey] = React.useState(null);
 
+  const autoQuery = d.category
+    ? `project = SW AND issuetype = Bug AND statusCategory != Done AND summary ~ "[${d.category}]" AND (summary ~ "${(d.problemStatement||"").split(" ").slice(0,3).join(" ")}")`
+    : "";
+
   function runSearch() {
-    setSearching(true);
+    setSearching(true); setOutcome(""); setSelectedKey(null);
     setTimeout(() => {
-      setResults(MOCK_RESULTS);
-      set({searchDone:true, dupOutcome:"", dupLinked:[]});
-      setOutcome(""); setSelectedKey(null);
+      setOpen(MOCK_OPEN); setClosed(MOCK_CLOSED);
+      set({searchDone:true,dupOutcome:"",dupLinked:[]});
       setSearching(false);
-    }, 1400);
+    }, 1200);
   }
 
   function pickOutcome(val, key=null) {
-    setOutcome(val);
-    setSelectedKey(key);
+    setOutcome(val); setSelectedKey(key);
     set({dupOutcome:val, dupLinked:key?[key]:[]});
   }
 
-  const openR = results.filter(r=>r.cat==="new");
-  const closedR = results.filter(r=>r.cat==="done");
-
-  const rowStyle = {display:"grid",gridTemplateColumns:"110px 1fr 100px",
-    gap:10,padding:"9px 12px",borderBottom:"1px solid var(--gray-100)",
-    alignItems:"start",fontSize:13,cursor:"pointer"};
+  const rowStyle = {display:"grid",gridTemplateColumns:"110px 1fr 100px",gap:10,
+    padding:"9px 12px",borderBottom:"1px solid var(--gray-100)",alignItems:"start",
+    fontSize:13,cursor:"pointer"};
 
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>Duplicate Search</h3>
-      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
-        Search existing bugs before creating. You must run the search and pick an outcome.
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>Duplicate Search — SW Project</h3>
+      <p style={{margin:"0 0 10px",fontSize:13,color:"var(--gray-500)"}}>
+        Searching <strong>noahmed.atlassian.net</strong> / project <strong>SW</strong>. Run before creating.
       </p>
+
+      {autoQuery && (
+        <div style={{background:"#1B2A4A",color:"#8FC3F7",fontSize:11,padding:"6px 12px",
+          borderRadius:4,marginBottom:12,fontFamily:"monospace",wordBreak:"break-all"}}>
+          AUTO JQL: {autoQuery}
+        </div>
+      )}
+
       {outcome==="open_match" && (
-        <Banner type="warning" title="Open duplicate found">
-          A matching open bug exists. Add evidence to that bug instead of creating a new one.
+        <Banner type="warning" title="Open duplicate found in SW">
+          An open SW bug matches. Add evidence to that issue instead of creating a new one.
+          {selectedKey && <span> → <a href={browseUrl(selectedKey)} target="_blank">{selectedKey} ↗</a></span>}
         </Banner>
       )}
+
       <button onClick={runSearch} disabled={searching}
-        style={{padding:"8px 18px",background:"var(--blue)",color:"#fff",
-          border:"none",borderRadius:4,fontSize:14,cursor:"pointer",marginBottom:18,
-          opacity:searching?0.7:1}}>
-        {searching ? "🔍 Searching…" : "🔍 Run Duplicate Search"}
+        style={{padding:"8px 18px",background:"var(--blue)",color:"#fff",border:"none",
+          borderRadius:4,fontSize:14,cursor:"pointer",marginBottom:16,opacity:searching?0.7:1}}>
+        {searching?"🔍 Searching noahmed.atlassian.net…":"🔍 Run Duplicate Search (SW)"}
       </button>
+
       {!d.searchDone && !searching && (
-        <Banner type="info">Click "Run Duplicate Search" to continue.</Banner>
+        <Banner type="info">Click to search open and closed SW bugs before creating.</Banner>
       )}
-      {results.length>0 && (
+
+      {(open.length > 0 || closed.length > 0) && (
         <>
-          <h4 style={{margin:"0 0 8px",color:"var(--gray-900)"}}>Open Bugs ({openR.length})</h4>
+          {/* Open bugs */}
+          <h4 style={{margin:"0 0 8px",color:"var(--gray-900)"}}>Open SW Bugs ({open.length})</h4>
           <div style={{border:"1px solid var(--gray-100)",borderRadius:4,marginBottom:14,overflow:"hidden"}}>
-            <div style={{...rowStyle,background:"var(--gray-50)",fontWeight:600,
-              borderBottom:"2px solid var(--gray-100)",cursor:"default"}}>
-              <span>Key</span><span>Summary / Description</span><span>Status</span>
+            <div style={{...rowStyle,background:"var(--gray-50)",fontWeight:600,borderBottom:"2px solid var(--gray-100)",cursor:"default"}}>
+              <span>Key</span><span>Summary</span><span>Status</span>
             </div>
-            {openR.map(r=>(
-              <div key={r.key} style={{...rowStyle,
-                background:selectedKey===r.key?"var(--blue-light)":"#fff"}}
+            {open.map(r=>(
+              <div key={r.key} style={{...rowStyle,background:selectedKey===r.key?"var(--blue-light)":"#fff"}}
                 onClick={()=>pickOutcome("open_match",r.key)}>
-                <span><input type="radio" readOnly checked={selectedKey===r.key} />
-                  {" "}<strong style={{color:"var(--blue)"}}>{r.key}</strong></span>
                 <span>
-                  <div style={{fontWeight:500}}>{r.summary}</div>
-                  <div style={{color:"var(--gray-500)",fontSize:12,marginTop:2}}>{r.desc.slice(0,100)}…</div>
+                  <input type="radio" readOnly checked={selectedKey===r.key} />{" "}
+                  <a href={browseUrl(r.key)} target="_blank" style={{fontWeight:600}}>{r.key}</a>
+                </span>
+                <span>
+                  <div style={{fontWeight:500,marginBottom:2}}>{r.summary}</div>
+                  <div style={{color:"var(--gray-500)",fontSize:12}}>{r.desc.slice(0,110)}…</div>
+                  <div style={{fontSize:11,color:"var(--gray-300)",marginTop:2}}>Assignee: {r.assignee} · {r.created}</div>
                 </span>
                 <span style={{background:"var(--red-light)",color:"var(--red-dark)",borderRadius:3,
                   padding:"2px 6px",fontSize:11,fontWeight:600}}>{r.status}</span>
@@ -634,21 +665,23 @@ function StepDupSearch({ d, set }) {
             ))}
           </div>
 
-          <h4 style={{margin:"0 0 8px",color:"var(--gray-900)"}}>Closed / Resolved Bugs ({closedR.length})</h4>
+          {/* Closed bugs */}
+          <h4 style={{margin:"0 0 8px",color:"var(--gray-900)"}}>Closed / Resolved SW Bugs ({closed.length})</h4>
           <div style={{border:"1px solid var(--gray-100)",borderRadius:4,marginBottom:16,overflow:"hidden"}}>
-            <div style={{...rowStyle,background:"var(--gray-50)",fontWeight:600,
-              borderBottom:"2px solid var(--gray-100)",cursor:"default"}}>
-              <span>Key</span><span>Summary / Description</span><span>Status</span>
+            <div style={{...rowStyle,background:"var(--gray-50)",fontWeight:600,borderBottom:"2px solid var(--gray-100)",cursor:"default"}}>
+              <span>Key</span><span>Summary</span><span>Status</span>
             </div>
-            {closedR.map(r=>(
-              <div key={r.key} style={{...rowStyle,
-                background:selectedKey===r.key?"var(--green-light)":"#fff"}}
+            {closed.map(r=>(
+              <div key={r.key} style={{...rowStyle,background:selectedKey===r.key?"var(--green-light)":"#fff"}}
                 onClick={()=>pickOutcome("closed_match",r.key)}>
-                <span><input type="radio" readOnly checked={selectedKey===r.key} />
-                  {" "}<strong style={{color:"var(--blue)"}}>{r.key}</strong></span>
                 <span>
-                  <div style={{fontWeight:500}}>{r.summary}</div>
-                  <div style={{color:"var(--gray-500)",fontSize:12,marginTop:2}}>{r.desc.slice(0,100)}…</div>
+                  <input type="radio" readOnly checked={selectedKey===r.key} />{" "}
+                  <a href={browseUrl(r.key)} target="_blank" style={{fontWeight:600}}>{r.key}</a>
+                </span>
+                <span>
+                  <div style={{fontWeight:500,marginBottom:2}}>{r.summary}</div>
+                  <div style={{color:"var(--gray-500)",fontSize:12}}>{r.desc.slice(0,110)}…</div>
+                  <div style={{fontSize:11,color:"var(--gray-300)",marginTop:2}}>Assignee: {r.assignee} · {r.created}</div>
                 </span>
                 <span style={{background:"var(--green-light)",color:"#006644",borderRadius:3,
                   padding:"2px 6px",fontSize:11,fontWeight:600}}>{r.status}</span>
@@ -656,20 +689,20 @@ function StepDupSearch({ d, set }) {
             ))}
           </div>
 
+          {/* Outcome */}
           <h4 style={{margin:"0 0 10px",color:"var(--gray-900)"}}>Select Outcome</h4>
           {[
-            {v:"none",       label:"✅ None of these match — proceed with new bug",          c:"#006644", bg:"var(--green-light)"},
-            {v:"closed_match",label:"🔄 Same as a CLOSED bug — re-occurrence (will link)",   c:"#974F0C", bg:"var(--orange-light)"},
-            {v:"open_match", label:"🚫 Same as an OPEN bug — add evidence there instead",    c:"var(--red-dark)", bg:"var(--red-light)"},
+            {v:"none",        label:"✅ None match — proceed with new SW bug",           c:"#006644", bg:"var(--green-light)"},
+            {v:"closed_match",label:"🔄 Matches a CLOSED SW bug — re-occurrence (will link)", c:"#974F0C", bg:"var(--orange-light)"},
+            {v:"open_match",  label:"🚫 Matches an OPEN SW bug — add evidence there",    c:"var(--red-dark)", bg:"var(--red-light)"},
           ].map(opt=>(
             <label key={opt.v} style={{display:"flex",alignItems:"center",gap:10,
               padding:"9px 14px",borderRadius:4,marginBottom:6,cursor:"pointer",
               background:outcome===opt.v?opt.bg:"var(--gray-50)",
               border:`1px solid ${outcome===opt.v?opt.c:"var(--gray-100)"}`,
               color:opt.c,fontWeight:outcome===opt.v?600:400}}>
-              <input type="radio" name="outcome" value={opt.v}
-                checked={outcome===opt.v}
-                onChange={()=>pickOutcome(opt.v, null)} />
+              <input type="radio" name="outcome" value={opt.v} checked={outcome===opt.v}
+                onChange={()=>pickOutcome(opt.v,null)} />
               {opt.label}
             </label>
           ))}
@@ -683,113 +716,143 @@ function StepDupSearch({ d, set }) {
 
 function StepReview({ d, onSubmit, submitting }) {
   const checks = [
-    { label:"Summary — category, sub-category, user-visible problem", ok: !!d.category && !!d.subCategory && d.problemStatement.length>=10 && !!d.conditionClause },
-    { label:"Environment — version, branch, hardware, mode", ok: (!!d.softwareVersion||!!d.unknownReason)&&(!!d.branchRelease||!!d.unknownReason)&&(!!d.hardwareConfig||!!d.unknownReason)&&(!!d.mode||!!d.unknownReason) },
-    { label:"Preconditions — documented or explicitly none", ok: (d.noPreconditions&&!!d.noPreconditionsExp)||((!d.noPreconditions)&&!!d.preconditions) },
-    { label:"Steps to reproduce — ≥2 steps, initial state, reproducibility", ok: !!d.initialState&&d.steps.filter(s=>s.trim()).length>=2&&!!d.reproducibility },
-    { label:"Expected vs actual behavior — clearly differentiated", ok: !!d.expectedBehavior&&!!d.actualBehavior&&d.expectedBehavior.toLowerCase()!==d.actualBehavior.toLowerCase() },
-    { label:"Impact — user/workflow effect, workaround, frequency", ok: !!d.userWorkflowImpact&&!!d.occurrence&&(!!d.workaroundPracticality||!!d.workaroundDesc) },
-    { label:"Evidence — at least one reference", ok: !!(d.screenshots||d.videos||d.logs||d.testIds) },
-    { label:"Duplicate search — performed and outcome resolved", ok: d.searchDone&&!!d.dupOutcome&&d.dupOutcome!=="open_match" },
-    { label:"Classification — Blocker requires rationale", ok: !(d.impactCat==="Blocker"&&!d.priorityRationale) },
+    {label:"Summary — category, sub-category, user-visible problem",
+     ok:!!d.category&&!!d.subCategory&&d.problemStatement.length>=10&&!!d.conditionClause},
+    {label:"Environment — version, branch, hardware, mode",
+     ok:(!!d.softwareVersion||!!d.unknownReason)&&(!!d.branchRelease||!!d.unknownReason)&&(!!d.hardwareConfig||!!d.unknownReason)&&(!!d.mode||!!d.unknownReason)},
+    {label:"Preconditions — documented or explicitly none",
+     ok:(d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions)},
+    {label:"Steps to reproduce — ≥2 steps, initial state, reproducibility",
+     ok:!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2&&!!d.reproducibility},
+    {label:"Expected vs actual behavior — clearly differentiated",
+     ok:!!d.expectedBehavior&&!!d.actualBehavior&&d.expectedBehavior.toLowerCase()!==d.actualBehavior.toLowerCase()},
+    {label:"Impact — user/workflow effect, workaround, frequency",
+     ok:!!d.userWorkflowImpact&&!!d.occurrence&&(!!d.workaroundPracticality||!!d.workaroundDesc)},
+    {label:"Evidence — at least one reference",
+     ok:!!(d.screenshots||d.videos||d.logs||d.testIds)},
+    {label:"Duplicate search — performed and outcome resolved",
+     ok:d.searchDone&&!!d.dupOutcome&&d.dupOutcome!=="open_match"},
+    {label:"Classification — Blocker requires rationale",
+     ok:!(d.impactCat==="Blocker"&&!d.priorityRationale)},
   ];
   const pass = checks.every(c=>c.ok);
   const assembled = d.category&&d.subCategory&&d.problemStatement
     ? `[${d.category}]-[${d.subCategory}]: ${d.problemStatement}${d.conditionClause?" "+d.conditionClause:""}`
     : "(summary not yet built)";
-
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>Review & Submit</h3>
-      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>All items must pass before the bug can be created.</p>
-
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>Review & Submit — SW Project</h3>
+      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>All items must pass before the bug is created in <strong>noahmed.atlassian.net / SW</strong>.</p>
       <div style={{background:pass?"var(--green-light)":"var(--red-light)",
-        border:`2px solid ${pass?"var(--green)":"var(--red)"}`,
-        borderRadius:6,padding:"10px 14px",marginBottom:14}}>
+        border:`2px solid ${pass?"var(--green)":"var(--red)"}`,borderRadius:6,padding:"10px 14px",marginBottom:14}}>
         <div style={{fontWeight:800,fontSize:15,color:pass?"#006644":"var(--red-dark)"}}>
-          {pass ? "✓ SQA GATE: PASSED" : `✗ SQA GATE: FAILED — ${checks.filter(c=>!c.ok).length} item(s)`}
+          {pass?"✓ SQA GATE: PASSED — Ready to create in SW":`✗ SQA GATE: FAILED — ${checks.filter(c=>!c.ok).length} item(s) incomplete`}
         </div>
       </div>
-
       <div style={{border:"1px solid var(--gray-100)",borderRadius:4,overflow:"hidden",marginBottom:16}}>
-        <div style={{background:"var(--gray-50)",padding:"8px 14px",fontWeight:700,fontSize:13,
-          borderBottom:"2px solid var(--gray-100)"}}>SQA Pre-Submit Checklist</div>
+        <div style={{background:"var(--gray-50)",padding:"8px 14px",fontWeight:700,fontSize:13,borderBottom:"2px solid var(--gray-100)"}}>
+          SQA Pre-Submit Checklist
+        </div>
         {checks.map((c,i)=>(
           <div key={i} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"8px 14px",
             background:c.ok?"#fff":"#FFF4F4",borderBottom:"1px solid var(--gray-50)"}}>
             <span style={{fontSize:14,flexShrink:0}}>{c.ok?"✅":"❌"}</span>
-            <span style={{fontSize:13,color:c.ok?"var(--gray-700)":"var(--red-dark)",fontWeight:c.ok?400:600}}>
-              {c.label}
-            </span>
+            <span style={{fontSize:13,color:c.ok?"var(--gray-700)":"var(--red-dark)",fontWeight:c.ok?400:600}}>{c.label}</span>
           </div>
         ))}
       </div>
-
-      <div style={{background:"var(--gray-50)",border:"1px solid var(--gray-100)",borderRadius:4,
-        padding:"10px 14px",marginBottom:16}}>
-        <p style={{margin:"0 0 4px",fontWeight:700,fontSize:11,color:"var(--gray-500)"}}>JIRA SUMMARY PREVIEW</p>
+      <div style={{background:"var(--gray-50)",border:"1px solid var(--gray-100)",borderRadius:4,padding:"10px 14px",marginBottom:16}}>
+        <p style={{margin:"0 0 4px",fontWeight:700,fontSize:11,color:"var(--gray-500)"}}>JIRA ISSUE PREVIEW — noahmed.atlassian.net / SW</p>
         <p style={{margin:0,fontSize:14,color:"var(--gray-900)",fontWeight:500}}>{assembled}</p>
-        <p style={{margin:"6px 0 0",fontSize:12,color:"var(--gray-500)"}}>
-          Project: <strong>{d.projectKey||"—"}</strong>
-        </p>
+        <p style={{margin:"6px 0 0",fontSize:12,color:"var(--gray-500)"}}>Project: <strong>SW</strong> · Type: Bug · Gate: {pass?"✓ PASSED":"✗ FAILED"}</p>
       </div>
-
       <div style={{textAlign:"center"}}>
         <button onClick={onSubmit} disabled={!pass||submitting}
           style={{padding:"12px 32px",fontSize:15,fontWeight:700,border:"none",
-            background:pass?"var(--green)":"var(--gray-300)",
-            color:"#fff",borderRadius:4,cursor:pass?"pointer":"not-allowed"}}>
-          {submitting ? "⏳ Creating Bug…" : "✓ Create SQA Bug in Jira"}
+            background:pass?"var(--green)":"var(--gray-300)",color:"#fff",borderRadius:4,cursor:pass?"pointer":"not-allowed"}}>
+          {submitting?"⏳ Creating SW bug…":"✓ Create SQA Bug in SW"}
         </button>
       </div>
     </div>
   );
 }
 
-// ─── Panel preview ────────────────────────────────────────────────────────────
+// ─── Issue Panel ──────────────────────────────────────────────────────────────
 
-function PanelPreview({ passed }) {
-  const items = [
-    { label:"Summary — category, sub-category, user-visible problem", ok:true },
-    { label:"Environment — version, branch, hardware, mode", ok:true },
-    { label:"Preconditions — documented or explicitly none", ok:true },
-    { label:"Steps to reproduce — numbered, concrete, from initial state", ok:true },
-    { label:"Expected vs actual behavior — clearly differentiated", ok:!passed },
-    { label:"Impact — user/workflow effect, workaround, frequency", ok:passed },
-    { label:"Evidence — logs, screenshots, test IDs referenced", ok:passed },
-    { label:"Duplicate search — performed and outcome resolved", ok:true },
-    { label:"Classification — Blocker impact requires rationale", ok:true },
-  ];
-  const actualPass = items.every(i=>i.ok);
-  const passing = items.filter(i=>i.ok).length;
+function PanelPreview({ issueKey, scenario }) {
+  const scenarios = {
+    fail: {
+      passed: false,
+      items: [
+        {label:"Summary — category, sub-category, user-visible problem",ok:true},
+        {label:"Environment — version, branch, hardware, mode",ok:true},
+        {label:"Preconditions — documented or explicitly none",ok:false,msg:"Preconditions required, or check 'No special preconditions' with explanation."},
+        {label:"Steps to reproduce — numbered, concrete, from initial state",ok:true},
+        {label:"Expected vs actual behavior — clearly differentiated",ok:false,msg:"Expected and actual must be different."},
+        {label:"Impact — user/workflow effect, workaround, frequency",ok:false,msg:"Estimated occurrence frequency is required."},
+        {label:"Evidence — logs, screenshots, test IDs referenced",ok:true},
+        {label:"Duplicate search — performed and outcome resolved",ok:false,msg:"Duplicate search has not been performed."},
+        {label:"Classification — Blocker impact requires rationale",ok:true},
+      ],
+    },
+    pass: {
+      passed: true,
+      items: [
+        {label:"Summary — category, sub-category, user-visible problem",ok:true},
+        {label:"Environment — version, branch, hardware, mode",ok:true},
+        {label:"Preconditions — documented or explicitly none",ok:true},
+        {label:"Steps to reproduce — numbered, concrete, from initial state",ok:true},
+        {label:"Expected vs actual behavior — clearly differentiated",ok:true},
+        {label:"Impact — user/workflow effect, workaround, frequency",ok:true},
+        {label:"Evidence — logs, screenshots, test IDs referenced",ok:true},
+        {label:"Duplicate search — performed and outcome resolved",ok:true},
+        {label:"Classification — Blocker impact requires rationale",ok:true},
+      ],
+    },
+  };
+  const data = scenarios[scenario];
+  const passing = data.items.filter(i=>i.ok).length;
+  const jiraUrl = browseUrl(issueKey);
+
   return (
     <div style={{fontFamily:"inherit",padding:12,fontSize:13}}>
-      <div style={{background:actualPass?"var(--green-light)":"var(--red-light)",
-        border:`2px solid ${actualPass?"var(--green)":"var(--red)"}`,
+      <div style={{marginBottom:10}}>
+        <a href={jiraUrl} target="_blank" style={{fontWeight:700,fontSize:14,color:"var(--blue)"}}>{issueKey} ↗</a>
+        <span style={{fontSize:11,color:"var(--gray-500)",marginLeft:8}}>noahmed.atlassian.net · SW</span>
+      </div>
+      <div style={{background:data.passed?"var(--green-light)":"var(--red-light)",
+        border:`2px solid ${data.passed?"var(--green)":"var(--red)"}`,
         borderRadius:6,padding:"10px 14px",marginBottom:12}}>
-        <div style={{fontWeight:800,fontSize:14,color:actualPass?"#006644":"var(--red-dark)"}}>
-          {actualPass ? "✓ SQA GATE: PASSED" : "✗ SQA GATE: FAILED"}
+        <div style={{fontWeight:800,fontSize:14,color:data.passed?"#006644":"var(--red-dark)"}}>
+          {data.passed?"✓ SQA GATE: PASSED":"✗ SQA GATE: FAILED"}
         </div>
-        <div style={{fontSize:11,color:"#6B778C",marginTop:3}}>
-          Last checked: {new Date().toLocaleString()}
-        </div>
+        <div style={{fontSize:11,color:"#6B778C",marginTop:3}}>Last checked: {new Date().toLocaleString()}</div>
       </div>
       <div style={{display:"flex",justifyContent:"space-between",marginBottom:8,alignItems:"center"}}>
-        <span style={{color:"var(--gray-500)",fontSize:12}}>{passing}/{items.length} items pass</span>
+        <span style={{color:"var(--gray-500)",fontSize:12}}>{passing}/9 items pass</span>
         <button style={{padding:"4px 10px",background:"var(--gray-50)",color:"var(--gray-700)",
           border:"1px solid var(--gray-100)",borderRadius:4,fontSize:11,cursor:"pointer"}}>↻ Refresh</button>
       </div>
       <div style={{border:"1px solid var(--gray-100)",borderRadius:4,overflow:"hidden"}}>
-        {[...items].sort((a,b)=>a.ok===b.ok?0:a.ok?1:-1).map((item,i)=>(
+        {[...data.items].sort((a,b)=>a.ok===b.ok?0:a.ok?1:-1).map((item,i)=>(
           <div key={i} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"7px 12px",
             borderBottom:"1px solid var(--gray-50)",background:item.ok?"#fff":"#FFF4F4"}}>
             <span style={{fontSize:13,flexShrink:0}}>{item.ok?"✅":"❌"}</span>
-            <span style={{fontSize:12,color:item.ok?"var(--gray-700)":"var(--red-dark)",fontWeight:item.ok?400:600}}>
-              {item.label}
-            </span>
+            <div>
+              <div style={{fontSize:12,color:item.ok?"var(--gray-700)":"var(--red-dark)",fontWeight:item.ok?400:600}}>
+                {item.label}
+              </div>
+              {!item.ok && item.msg && <div style={{fontSize:11,color:"var(--red)",marginTop:1}}>{item.msg}</div>}
+            </div>
           </div>
         ))}
       </div>
+      {!data.passed && (
+        <div style={{marginTop:10,padding:"8px 12px",background:"var(--blue-light)",
+          border:"1px solid #B3D4FF",borderRadius:4,fontSize:12,color:"var(--blue-dark)"}}>
+          ℹ️ Fix failing items, then the workflow validator will allow transition to <strong>Ready for Triage</strong>.
+        </div>
+      )}
     </div>
   );
 }
@@ -797,35 +860,40 @@ function PanelPreview({ passed }) {
 // ─── App shell ────────────────────────────────────────────────────────────────
 
 function App() {
-  const [view, setView] = React.useState("wizard"); // "wizard" | "panel_fail" | "panel_pass"
+  const [view, setView] = React.useState("wizard");
   const [step, setStep] = React.useState(0);
   const [d, setD] = React.useState(INITIAL);
   const [submitted, setSubmitted] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
+  const [createdKey, setCreatedKey] = React.useState(null);
 
   function set(patch) { setD(prev=>({...prev,...patch})); }
 
   const stepValid = [
     !!d.projectKey,
-    !!d.category && !!d.subCategory && d.problemStatement.length>=10 && !!d.conditionClause,
-    (!!d.softwareVersion||!!d.unknownReason) && (!!d.hardwareConfig||!!d.unknownReason) && (!!d.mode||!!d.unknownReason),
-    (d.noPreconditions&&!!d.noPreconditionsExp)||((!d.noPreconditions)&&!!d.preconditions),
-    !!d.initialState && d.steps.filter(s=>s.trim()).length>=2 && !!d.reproducibility,
-    !!d.expectedBehavior && !!d.actualBehavior,
-    !!d.userWorkflowImpact && !!d.occurrence,
+    !!d.category&&!!d.subCategory&&d.problemStatement.length>=10&&!!d.conditionClause,
+    (!!d.softwareVersion||!!d.unknownReason)&&(!!d.hardwareConfig||!!d.unknownReason)&&(!!d.mode||!!d.unknownReason),
+    (d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions),
+    !!d.initialState&&d.steps.filter(s=>s.trim()).length>=2&&!!d.reproducibility,
+    !!d.expectedBehavior&&!!d.actualBehavior,
+    !!d.userWorkflowImpact&&!!d.occurrence,
     !!(d.screenshots||d.videos||d.logs||d.testIds),
-    true, // traceability optional
-    true, // classification optional
-    d.searchDone && !!d.dupOutcome,
-    true, // review always navigable
+    true, true, // traceability + classification optional
+    d.searchDone&&!!d.dupOutcome,
+    true,
   ];
 
   function handleSubmit() {
     setSubmitting(true);
-    setTimeout(()=>{ setSubmitting(false); setSubmitted(true); }, 1600);
+    setTimeout(() => {
+      const n = 4900 + Math.floor(Math.random()*99);
+      setCreatedKey(`SW-${n}`);
+      setSubmitting(false);
+      setSubmitted(true);
+    }, 1600);
   }
 
-  const STEPS = [
+  const STEPS_COMPONENTS = [
     <StepProject d={d} set={set} />,
     <StepSummary d={d} set={set} />,
     <StepEnvironment d={d} set={set} />,
@@ -840,51 +908,51 @@ function App() {
     <StepReview d={d} onSubmit={handleSubmit} submitting={submitting} />,
   ];
 
-  const navBtnStyle = (active, color="#0052CC") => ({
-    padding:"7px 16px", border:"none", borderRadius:4,
-    background: active ? color : "#DFE1E6",
-    color: active ? "#fff" : "#6B778C",
-    cursor:"pointer", fontSize:13, fontWeight: active ? 700 : 400,
+  const navBtn = (active, color="var(--blue)") => ({
+    padding:"7px 15px",border:"none",borderRadius:4,cursor:"pointer",fontSize:13,
+    background:active?color:"var(--gray-100)",color:active?"#fff":"var(--gray-500)",
+    fontWeight:active?700:400,
   });
 
   return (
     <div style={{minHeight:"100vh",background:"var(--gray-50)"}}>
-      {/* ── Header ── */}
-      <div style={{background:"#0052CC",padding:"10px 20px",display:"flex",
-        alignItems:"center",gap:16,boxShadow:"0 2px 4px rgba(0,0,0,0.2)"}}>
-        <span style={{color:"#fff",fontWeight:800,fontSize:16,letterSpacing:"0.3px"}}>
-          🔬 SQA Bug Gate
-        </span>
-        <span style={{flex:1}}></span>
-        <button onClick={()=>setView("wizard")} style={navBtnStyle(view==="wizard","#0065FF")}>
-          Wizard (New SQA Bug)
-        </button>
-        <button onClick={()=>setView("panel_fail")} style={navBtnStyle(view==="panel_fail","#0065FF")}>
-          Issue Panel — FAILED
-        </button>
-        <button onClick={()=>setView("panel_pass")} style={navBtnStyle(view==="panel_pass","#0065FF")}>
-          Issue Panel — PASSED
-        </button>
+
+      {/* Header */}
+      <div style={{background:"#0052CC",padding:"10px 20px",display:"flex",alignItems:"center",
+        gap:12,boxShadow:"0 2px 4px rgba(0,0,0,0.2)",flexWrap:"wrap"}}>
+        <span style={{color:"#fff",fontWeight:800,fontSize:16}}>🔬 SQA Bug Gate</span>
+        <span style={{color:"rgba(255,255,255,0.6)",fontSize:13}}>noahmed.atlassian.net · Project SW</span>
+        <span style={{flex:1}}/>
+        <button onClick={()=>{setView("wizard");setSubmitted(false);}} style={navBtn(view==="wizard","#0065FF")}>Wizard</button>
+        <button onClick={()=>setView("panel_fail")} style={navBtn(view==="panel_fail","#0065FF")}>Panel — FAILED</button>
+        <button onClick={()=>setView("panel_pass")} style={navBtn(view==="panel_pass","#0065FF")}>Panel — PASSED</button>
       </div>
 
-      {/* ── Content ── */}
-      {view === "wizard" && (
+      {/* Debug bar */}
+      {view==="wizard" && <DebugBar step={step} totalSteps={WIZARD_STEPS.length} />}
+
+      {/* Wizard */}
+      {view==="wizard" && (
         <div style={{maxWidth:880,margin:"0 auto",padding:"20px 16px"}}>
           {submitted ? (
             <div style={{background:"#fff",border:"1px solid var(--gray-100)",borderRadius:4,
               padding:40,textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.08)"}}>
               <div style={{fontSize:52,marginBottom:14}}>✅</div>
-              <h2 style={{color:"var(--green)",margin:"0 0 8px"}}>SQA Bug Created</h2>
+              <h2 style={{color:"var(--green)",margin:"0 0 8px"}}>SQA Bug Created in SW</h2>
               <p style={{fontSize:16,color:"var(--gray-700)"}}>
-                <strong>NOAM-{1000+Math.floor(Math.random()*9000)}</strong> has been created and passes the SQA gate.
+                <strong>{createdKey}</strong> passes the SQA gate.
               </p>
-              <p style={{fontSize:13,color:"var(--gray-500)"}}>
-                Remember to attach screenshots, videos, and log files to the issue.
-              </p>
+              <a href={browseUrl(createdKey)} target="_blank"
+                style={{display:"inline-block",margin:"8px 0 14px",padding:"9px 20px",
+                  background:"var(--blue)",color:"#fff",borderRadius:4,fontSize:14,
+                  textDecoration:"none",fontWeight:600}}>
+                Open {createdKey} in Jira ↗
+              </a>
+              <p style={{fontSize:13,color:"var(--gray-500)"}}>Remember to attach screenshots, videos, and log files to the issue.</p>
               <button onClick={()=>{setSubmitted(false);setStep(0);setD(INITIAL);}}
-                style={{marginTop:14,padding:"10px 22px",background:"var(--blue)",color:"#fff",
-                  border:"none",borderRadius:4,fontSize:14,cursor:"pointer"}}>
-                + Create Another Bug
+                style={{marginTop:8,padding:"9px 20px",background:"var(--gray-50)",color:"var(--gray-700)",
+                  border:"1px solid var(--gray-100)",borderRadius:4,fontSize:14,cursor:"pointer"}}>
+                + Create Another SW Bug
               </button>
             </div>
           ) : (
@@ -892,19 +960,19 @@ function App() {
               <div style={{marginBottom:4}}>
                 <h2 style={{margin:0,color:"var(--gray-900)"}}>New SQA Bug</h2>
                 <p style={{margin:"2px 0 12px",color:"var(--gray-500)",fontSize:13}}>
-                  Noah Medical SQA Bug Report Quality Gate — all mandatory sections must pass before submission.
+                  noahmed.atlassian.net · Project <strong>SW</strong> · All mandatory sections must pass before submission.
                 </p>
               </div>
               <Progress steps={WIZARD_STEPS} current={step} />
               <div style={{background:"#fff",border:"1px solid var(--gray-100)",borderRadius:4,
                 padding:24,boxShadow:"0 1px 3px rgba(0,0,0,0.06)"}}>
-                {STEPS[step]}
-                {step < STEPS.length - 1 && (
-                  <Nav idx={step} total={STEPS.length} canNext={stepValid[step]}
-                    isLast={step===STEPS.length-1}
+                {STEPS_COMPONENTS[step]}
+                {step < STEPS_COMPONENTS.length-1 && (
+                  <Nav idx={step} total={STEPS_COMPONENTS.length}
+                    canNext={stepValid[step]} isLast={step===STEPS_COMPONENTS.length-1}
                     isSubmitting={submitting}
                     onBack={()=>setStep(s=>Math.max(0,s-1))}
-                    onNext={()=>setStep(s=>Math.min(STEPS.length-1,s+1))}
+                    onNext={()=>setStep(s=>Math.min(STEPS_COMPONENTS.length-1,s+1))}
                     onSubmit={handleSubmit} />
                 )}
               </div>
@@ -913,22 +981,23 @@ function App() {
         </div>
       )}
 
-      {(view === "panel_fail" || view === "panel_pass") && (
-        <div style={{maxWidth:420,margin:"24px auto",padding:"0 16px"}}>
+      {/* Panel views */}
+      {(view==="panel_fail"||view==="panel_pass") && (
+        <div style={{maxWidth:440,margin:"24px auto",padding:"0 16px"}}>
           <div style={{marginBottom:8}}>
             <h3 style={{margin:"0 0 2px",color:"var(--gray-900)"}}>
-              Issue: {view==="panel_fail" ? "NOAM-901" : "NOAM-812"}
+              Issue: {view==="panel_fail"?"SW-4901":"SW-4812"}
             </h3>
-            <p style={{margin:0,fontSize:12,color:"var(--gray-500)"}}>
-              SQA Gate panel (right sidebar on the Jira issue view)
-            </p>
+            <p style={{margin:0,fontSize:12,color:"var(--gray-500)"}}>SQA Gate panel · right sidebar on the Jira issue view</p>
           </div>
           <div style={{background:"#fff",border:"1px solid var(--gray-100)",borderRadius:4,
             boxShadow:"0 1px 3px rgba(0,0,0,0.06)"}}>
-            <PanelPreview passed={view==="panel_pass"} />
+            <PanelPreview issueKey={view==="panel_fail"?"SW-4901":"SW-4812"}
+              scenario={view==="panel_fail"?"fail":"pass"} />
           </div>
         </div>
       )}
+
     </div>
   );
 }

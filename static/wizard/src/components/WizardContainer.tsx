@@ -31,6 +31,7 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
   const [stepValid, setStepValid] = useState<Record<number, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedKey, setSubmittedKey] = useState<string | null>(null);
+  const [submittedUrl, setSubmittedUrl] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const steps = WIZARD_STEPS;
@@ -53,12 +54,14 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
       const result = await invoke<{
         success: boolean;
         issueKey?: string;
+        issueUrl?: string;
         error?: string;
         failingItems?: string[];
       }>('createBug', { bugData });
 
       if (result.success && result.issueKey) {
         setSubmittedKey(result.issueKey);
+        setSubmittedUrl(result.issueUrl ?? null);
       } else {
         setSubmitError(result.error ?? 'Unknown error creating bug.');
       }
@@ -78,19 +81,34 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
         <p style={{ color: '#344563', fontSize: '16px' }}>
           <strong>{submittedKey}</strong> has been created and passes the SQA gate.
         </p>
+        {submittedUrl && (
+          <a
+            href={submittedUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: 'inline-block', marginBottom: '12px', padding: '8px 18px',
+              background: '#0052CC', color: '#fff', borderRadius: '4px',
+              fontSize: '14px', textDecoration: 'none', fontWeight: 600,
+            }}
+          >
+            Open {submittedKey} in Jira ↗
+          </a>
+        )}
         <p style={{ color: '#5E6C84', fontSize: '14px' }}>
           Remember to attach any screenshots, videos, and log files to the issue.
         </p>
         <button
           style={{
-            marginTop: '16px', padding: '10px 20px', background: '#0052CC',
-            color: '#fff', border: 'none', borderRadius: '4px', fontSize: '14px', cursor: 'pointer',
+            marginTop: '8px', padding: '10px 20px', background: '#F4F5F7',
+            color: '#344563', border: '1px solid #DFE1E6', borderRadius: '4px', fontSize: '14px', cursor: 'pointer',
           }}
           onClick={() => {
             setBugData(INITIAL_BUG_DATA);
             setStepValid({});
             setCurrentIndex(0);
             setSubmittedKey(null);
+            setSubmittedUrl(null);
           }}
         >
           Create Another Bug

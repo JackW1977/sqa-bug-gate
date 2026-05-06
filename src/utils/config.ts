@@ -57,7 +57,8 @@ export const DEFAULT_CATEGORIES: CategoryConfig[] = [
 ];
 
 export const DEFAULT_CONFIG: AppConfig = {
-  governedProjects: [],
+  jiraSiteUrl: 'https://noahmed.atlassian.net',
+  governedProjects: ['SW'],
   governedIssueTypes: ['Bug'],
   gatedStatuses: ['Ready for Triage', 'Ready for Dev', 'Triage'],
   categories: DEFAULT_CATEGORIES,
@@ -94,4 +95,16 @@ export function isGatedStatus(status: string, config: AppConfig): boolean {
   return config.gatedStatuses
     .map((s) => s.toLowerCase())
     .includes(status.toLowerCase());
+}
+
+/** Returns a full Jira browse URL for the given issue key, e.g. https://noahmed.atlassian.net/browse/SW-123 */
+export function browseUrl(issueKey: string, config: AppConfig): string {
+  const base = (config.jiraSiteUrl ?? 'https://noahmed.atlassian.net').replace(/\/$/, '');
+  return `${base}/browse/${issueKey}`;
+}
+
+/** Returns the Jira board URL for a project, e.g. https://noahmed.atlassian.net/jira/software/c/projects/SW/boards */
+export function boardUrl(projectKey: string, config: AppConfig): string {
+  const base = (config.jiraSiteUrl ?? 'https://noahmed.atlassian.net').replace(/\/$/, '');
+  return `${base}/jira/software/c/projects/${projectKey}/boards`;
 }

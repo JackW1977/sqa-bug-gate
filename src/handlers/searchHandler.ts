@@ -1,5 +1,6 @@
 import type { SQABugData, SQADuplicateSearchData, DuplicateOutcome } from '../utils/sqaInstructionModel';
 import { performDuplicateSearch } from '../utils/duplicateSearch';
+import { getAppConfig } from '../utils/config';
 import { recordDuplicatePrevented } from '../utils/metrics';
 import { getGateState, saveGateState } from './bugHandler';
 
@@ -13,6 +14,7 @@ export interface SearchDuplicatesResult {
   closedResults: SQADuplicateSearchData['results'];
   openJql: string;
   closedJql: string;
+  jiraSiteUrl: string;
   error?: string;
 }
 
@@ -20,13 +22,15 @@ export async function searchDuplicates(
   payload: SearchDuplicatesPayload,
 ): Promise<SearchDuplicatesResult> {
   try {
-    const result = await performDuplicateSearch(payload.bugData);
+    const config = await getAppConfig();
+    const result = await performDuplicateSearch(payload.bugData, config);
     return {
       success: true,
       openResults: result.openResults,
       closedResults: result.closedResults,
       openJql: result.openJql,
       closedJql: result.closedJql,
+      jiraSiteUrl: result.jiraSiteUrl,
     };
   } catch (err) {
     return {
@@ -35,6 +39,7 @@ export async function searchDuplicates(
       closedResults: [],
       openJql: '',
       closedJql: '',
+      jiraSiteUrl: 'https://noahmed.atlassian.net',
       error: String(err),
     };
   }

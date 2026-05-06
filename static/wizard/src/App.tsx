@@ -24,7 +24,13 @@ const App: React.FC = () => {
         }
 
         if (projectsRes.success && projectsRes.projects) {
-          setProjects(projectsRes.projects);
+          // Filter to governed projects if configured; fallback to full list
+          const governed = configRes.config?.governedProjects ?? [];
+          setProjects(
+            governed.length > 0
+              ? (projectsRes.projects ?? []).filter((p) => governed.includes(p.key))
+              : (projectsRes.projects ?? []),
+          );
         }
       } catch (e) {
         setError(String(e));

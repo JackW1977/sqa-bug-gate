@@ -132,6 +132,7 @@ export interface ValidationResult {
 }
 
 export interface AppConfig {
+  jiraSiteUrl: string;
   governedProjects: string[];
   governedIssueTypes: string[];
   gatedStatuses: string[];

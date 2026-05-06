@@ -167,6 +167,8 @@ export interface IssueGateState {
 // ─── App Config ──────────────────────────────────────────────────────────────
 
 export interface AppConfig {
+  /** Atlassian Cloud site base URL, e.g. https://noahmed.atlassian.net */
+  jiraSiteUrl: string;
   /** Jira project keys where the SQA gate is active (empty = all projects). */
   governedProjects: string[];
   /** Issue types the gate applies to. */

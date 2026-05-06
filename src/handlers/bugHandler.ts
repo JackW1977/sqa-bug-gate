@@ -8,6 +8,7 @@ import {
 import { assembleSummary } from '../utils/validator';
 import { runChecklist } from '../utils/validator';
 import { recordChecklistResult } from '../utils/metrics';
+import { getAppConfig, browseUrl } from '../utils/config';
 
 const GATE_STATE_PREFIX = 'sqa:gate:';
 
@@ -188,9 +189,11 @@ export async function createBug(payload: CreateBugPayload): Promise<CreateBugRes
     }
   }
 
+  const config = await getAppConfig();
   return {
     success: true,
     issueKey: created.key,
+    issueUrl: browseUrl(created.key, config),
   };
 }
 
