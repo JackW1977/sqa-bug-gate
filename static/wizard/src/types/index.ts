@@ -174,7 +174,6 @@ export type WizardStep =
   | 'expectedActual'
   | 'evidence'
   | 'traceability'
-  | 'classification'
   | 'duplicateSearch'
   | 'review';
 
@@ -191,7 +190,6 @@ export const WIZARD_STEPS: WizardStepMeta[] = [
   { id: 'expectedActual', label: 'Expected vs Actual' },
   { id: 'evidence', label: 'Evidence' },
   { id: 'traceability', label: 'Traceability', optional: true },
-  { id: 'classification', label: 'Classification', optional: true },
   { id: 'duplicateSearch', label: 'Duplicate Search' },
   { id: 'review', label: 'Review & Submit' },
 ];

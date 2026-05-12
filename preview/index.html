@@ -90,7 +90,7 @@ const MOCK_CLOSED = [
 const WIZARD_STEPS = [
   "Project", "Summary", "Preconditions & Steps",
   "Expected vs Actual",
-  "Evidence", "Traceability", "Classification",
+  "Evidence", "Traceability",
   "Duplicate Search", "Review & Submit"
 ];
 
@@ -499,42 +499,7 @@ function StepTrace({ d, set }) {
   );
 }
 
-// ─── Step 6 – Classification ──────────────────────────────────────────────────
-
-function StepClass({ d, set }) {
-  return (
-    <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>6 — Classification Suggestion</h3>
-      <Banner type="warning">⚠️ SQA suggestion only — final severity/priority set by triage/product/engineering.</Banner>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
-        <Field label="Type">
-          <select value={d.bugType} onChange={e=>set({bugType:e.target.value})} style={inp}>
-            <option value="">— Optional —</option><option>Bug</option><option>Improvement</option>
-          </select>
-        </Field>
-        <Field label="Impact Category">
-          <select value={d.impactCat} onChange={e=>set({impactCat:e.target.value})} style={inp}>
-            <option value="">— Optional —</option>
-            <option>Minor</option><option>Intermediate</option><option>Major</option><option>Blocker</option>
-          </select>
-        </Field>
-        <Field label="Priority Suggestion">
-          <select value={d.prioritySug} onChange={e=>set({prioritySug:e.target.value})} style={inp}>
-            <option value="">— Optional —</option>
-            <option>Highest</option><option>High</option><option>Medium</option><option>Low</option>
-          </select>
-        </Field>
-      </div>
-      <Field label="Priority Rationale" hint="Required if Blocker.">
-        <textarea rows={3} value={d.priorityRationale}
-          placeholder="e.g. Blocks core navigation workflow in every SW procedure on affected hardware; workaround cumbersome and not acceptable for clinical use."
-          onChange={e=>set({priorityRationale:e.target.value})} style={{...inp,resize:"vertical"}} />
-      </Field>
-    </div>
-  );
-}
-
-// ─── Step 7 – Duplicate Search ───────────────────────────────────────────────
+// ─── Step 6 – Duplicate Search ───────────────────────────────────────────────
 
 function StepDupSearch({ d, set }) {
   const [searching, setSearching] = React.useState(false);
@@ -677,16 +642,12 @@ function StepReview({ d, onSubmit, submitting }) {
      ok:!!d.category&&!!d.subCategory&&d.problemStatement.length>=10&&!!d.conditionClause},
     {label:"Preconditions & steps — hardware, preconditions, initial state, ≥2 steps",
      ok:!!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions))&&!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2},
-    {label:"Preconditions & steps — hardware, preconditions, initial state, ≥2 steps",
-     ok:!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2},
     {label:"Expected vs actual behavior — clearly differentiated",
      ok:!!d.expectedBehavior&&!!d.actualBehavior&&d.expectedBehavior.toLowerCase()!==d.actualBehavior.toLowerCase()},
     {label:"Evidence — at least one reference",
      ok:!!(d.screenshots||d.videos||d.logs||d.testIds)},
     {label:"Duplicate search — performed and outcome resolved",
      ok:d.searchDone&&!!d.dupOutcome&&d.dupOutcome!=="open_match"},
-    {label:"Classification — Blocker requires rationale",
-     ok:!(d.impactCat==="Blocker"&&!d.priorityRationale)},
   ];
   const pass = checks.every(c=>c.ok);
   const assembled = d.category&&d.subCategory&&d.problemStatement
@@ -738,26 +699,20 @@ function PanelPreview({ issueKey, scenario }) {
       passed: false,
       items: [
         {label:"Summary — category, sub-category, user-visible problem",ok:true},
-        {label:"Preconditions & Hardware — hardware config, preconditions",ok:true},
-        {label:"Preconditions — documented or explicitly none",ok:false,msg:"Preconditions required, or check 'No special preconditions' with explanation."},
-        {label:"Steps to reproduce — numbered, concrete, from initial state",ok:true},
+        {label:"Preconditions & steps — hardware, preconditions, initial state, ≥2 steps",ok:false,msg:"Preconditions required, or check 'No special preconditions' with explanation."},
         {label:"Expected vs actual behavior — clearly differentiated",ok:false,msg:"Expected and actual must be different."},
-        {label:"Evidence — logs, screenshots, test IDs referenced",ok:true},
+        {label:"Evidence — at least one reference",ok:true},
         {label:"Duplicate search — performed and outcome resolved",ok:false,msg:"Duplicate search has not been performed."},
-        {label:"Classification — Blocker impact requires rationale",ok:true},
       ],
     },
     pass: {
       passed: true,
       items: [
         {label:"Summary — category, sub-category, user-visible problem",ok:true},
-        {label:"Preconditions & Hardware — hardware config, preconditions",ok:true},
-        {label:"Preconditions — documented or explicitly none",ok:true},
-        {label:"Steps to reproduce — numbered, concrete, from initial state",ok:true},
+        {label:"Preconditions & steps — hardware, preconditions, initial state, ≥2 steps",ok:true},
         {label:"Expected vs actual behavior — clearly differentiated",ok:true},
-        {label:"Evidence — logs, screenshots, test IDs referenced",ok:true},
+        {label:"Evidence — at least one reference",ok:true},
         {label:"Duplicate search — performed and outcome resolved",ok:true},
-        {label:"Classification — Blocker impact requires rationale",ok:true},
       ],
     },
   };
@@ -780,7 +735,7 @@ function PanelPreview({ issueKey, scenario }) {
         <div style={{fontSize:11,color:"#6B778C",marginTop:3}}>Last checked: {new Date().toLocaleString()}</div>
       </div>
       <div style={{display:"flex",justifyContent:"space-between",marginBottom:8,alignItems:"center"}}>
-        <span style={{color:"var(--gray-500)",fontSize:12}}>{passing}/9 items pass</span>
+        <span style={{color:"var(--gray-500)",fontSize:12}}>{passing}/{data.items.length} items pass</span>
         <button style={{padding:"4px 10px",background:"var(--gray-50)",color:"var(--gray-700)",
           border:"1px solid var(--gray-100)",borderRadius:4,fontSize:11,cursor:"pointer"}}>↻ Refresh</button>
       </div>
@@ -826,7 +781,7 @@ function App() {
     !!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions))&&!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2,
     !!d.expectedBehavior&&!!d.actualBehavior,
     !!(d.screenshots||d.videos||d.logs||d.testIds),
-    true, true, // traceability + classification optional
+    true, // traceability optional
     d.searchDone&&!!d.dupOutcome,
     true,
   ];
@@ -848,7 +803,6 @@ function App() {
     <StepExpAct d={d} set={set} />,
     <StepEvidence d={d} set={set} />,
     <StepTrace d={d} set={set} />,
-    <StepClass d={d} set={set} />,
     <StepDupSearch d={d} set={set} />,
     <StepReview d={d} onSubmit={handleSubmit} submitting={submitting} />,
   ];

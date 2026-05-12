@@ -13,7 +13,6 @@ import Step2Preconditions from './steps/Step3Preconditions';
 import Step3ExpectedActual from './steps/Step5ExpectedActual';
 import Step4Evidence from './steps/Step7Evidence';
 import Step8Traceability from './steps/Step8Traceability';
-import Step9Classification from './steps/Step9Classification';
 import StepDuplicateSearch from './steps/StepDuplicateSearch';
 import StepChecklistReview from './steps/StepChecklistReview';
 
@@ -124,7 +123,6 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
     expectedActual:   <Step3ExpectedActual {...stepProps} />,
     evidence:         <Step4Evidence {...stepProps} />,
     traceability:     <Step8Traceability {...stepProps} />,
-    classification:   <Step9Classification {...stepProps} />,
     duplicateSearch:  <StepDuplicateSearch {...stepProps} />,
     review:           <StepChecklistReview {...stepProps} isSubmitting={isSubmitting} onSubmit={handleSubmit} />,
   };
