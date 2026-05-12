@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { SQABugData, AppConfig, SQAPreconditionsData, SQAStepsToReproduceData } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
+import GleanButton from '../common/GleanButton';
 
 interface Props {
   bugData: SQABugData;
@@ -30,7 +31,7 @@ function validate(
   return null;
 }
 
-const Step3Preconditions: React.FC<Props> = ({ bugData, onChange, onValidate }) => {
+const Step3Preconditions: React.FC<Props> = ({ bugData, onChange, onValidate, config }) => {
   const pre = bugData.preconditions;
   const repro = bugData.stepsToReproduce;
   const hardwareConfig = bugData.environment.hardwareConfig;
@@ -82,6 +83,7 @@ const Step3Preconditions: React.FC<Props> = ({ bugData, onChange, onValidate }) 
           placeholder="e.g. NovaCyclone Gen2, TIC v4, USB bronchoscope BC-12, standard OR cart, Win 11 TPS workstation"
           onChange={(e) => updateHardware(e.target.value)}
           style={{ ...inp, resize: 'vertical' }} />
+        <GleanButton value={hardwareConfig} onAccept={updateHardware} fieldContext="hardware configuration listing system type, controller, scope, and peripherals" config={config} />
       </FormField>
 
       {/* ── Preconditions ── */}
@@ -100,6 +102,7 @@ const Step3Preconditions: React.FC<Props> = ({ bugData, onChange, onValidate }) 
             placeholder="e.g. Reproducible from any fresh session with default settings"
             onChange={(e) => updatePre({ noPreconditionsExplanation: e.target.value })}
             style={inp} />
+          <GleanButton value={pre.noPreconditionsExplanation} onAccept={(v) => updatePre({ noPreconditionsExplanation: v })} fieldContext="explanation for why there are no special preconditions" config={config} />
         </FormField>
       ) : (
         <FormField label="Preconditions" required hint="List each precondition on its own line or as a numbered list.">
@@ -107,6 +110,7 @@ const Step3Preconditions: React.FC<Props> = ({ bugData, onChange, onValidate }) 
             placeholder={'1. System powered on and at home screen\n2. User logged in as clinical operator\n3. Prior planning session completed (no active case)\n4. USB scope BC-12 connected'}
             onChange={(e) => updatePre({ preconditions: e.target.value })}
             style={{ ...inp, resize: 'vertical' }} />
+          <GleanButton value={pre.preconditions} onAccept={(v) => updatePre({ preconditions: v })} fieldContext="list of preconditions required to reproduce a software bug" config={config} />
         </FormField>
       )}
 
@@ -116,6 +120,7 @@ const Step3Preconditions: React.FC<Props> = ({ bugData, onChange, onValidate }) 
           <input type="text" value={repro.initialState}
             placeholder="e.g. System at home screen, scope connected, no active case"
             onChange={(e) => updateRepro({ initialState: e.target.value })} style={inp} />
+          <GleanButton value={repro.initialState} onAccept={(v) => updateRepro({ initialState: v })} fieldContext="initial system state before reproduction steps begin" config={config} />
         </FormField>
 
         <div style={{ marginBottom: '16px' }}>

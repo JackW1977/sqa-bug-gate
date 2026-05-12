@@ -3,6 +3,7 @@ import { createBug, getGateState } from './handlers/bugHandler';
 import { searchDuplicates, saveDuplicateOutcome } from './handlers/searchHandler';
 import { getChecklistStatus, validateChecklist } from './handlers/checklistHandler';
 import { getConfig, updateConfig, listProjects, getIssueUrl, listVersions, listComponents, listSprints } from './handlers/configHandler';
+import { rephraseWithGlean } from './handlers/gleanHandler';
 import { getMetrics } from './utils/metrics';
 import { handleWorkflowValidation } from './handlers/workflowValidator';
 
@@ -67,6 +68,11 @@ resolver.define('listComponents', async ({ payload }) => {
 
 resolver.define('listSprints', async ({ payload }) => {
   return listSprints(payload as { projectKey: string });
+});
+
+// Glean AI rephrase
+resolver.define('rephraseWithGlean', async ({ payload }) => {
+  return rephraseWithGlean(payload as Parameters<typeof rephraseWithGlean>[0]);
 });
 
 // Metrics

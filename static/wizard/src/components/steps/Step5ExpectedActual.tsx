@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { SQABugData, AppConfig, SQAExpectedActualData } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
+import GleanButton from '../common/GleanButton';
 
 interface Props {
   bugData: SQABugData;
@@ -28,7 +29,7 @@ const inp: React.CSSProperties = {
   borderRadius: '4px', fontSize: '14px', fontFamily: 'inherit', resize: 'vertical',
 };
 
-const Step5ExpectedActual: React.FC<Props> = ({ bugData, onChange, onValidate }) => {
+const Step5ExpectedActual: React.FC<Props> = ({ bugData, onChange, onValidate, config }) => {
   const d = bugData.expectedActual;
   const [touched, setTouched] = useState(false);
   const error = validate(d);
@@ -53,18 +54,21 @@ const Step5ExpectedActual: React.FC<Props> = ({ bugData, onChange, onValidate })
         <textarea rows={4} value={d.expectedBehavior}
           placeholder="e.g. The bronchoscope view should display a live video feed within 3 seconds of connection."
           onChange={(e) => update({ expectedBehavior: e.target.value })} style={inp} />
+        <GleanButton value={d.expectedBehavior} onAccept={(v) => update({ expectedBehavior: v })} fieldContext="expected system behavior from the user's perspective per design/requirements" config={config} />
       </FormField>
 
       <FormField label="Actual Behavior" required hint="Describe exactly what was observed, including any error messages, UI state, or system response.">
         <textarea rows={4} value={d.actualBehavior}
           placeholder="e.g. The view remains black with a spinner indefinitely. No error message is displayed. The scope LED is active."
           onChange={(e) => update({ actualBehavior: e.target.value })} style={inp} />
+        <GleanButton value={d.actualBehavior} onAccept={(v) => update({ actualBehavior: v })} fieldContext="actual observed behavior including error messages, UI state, and system response" config={config} />
       </FormField>
 
       <FormField label="Notes / Suspected Cause" hint="Optional — root-cause theories, related observations, or suspicions go here, not in the fields above.">
         <textarea rows={3} value={d.notes}
           placeholder="e.g. May be related to USB driver initialisation timeout observed in logs."
           onChange={(e) => update({ notes: e.target.value })} style={inp} />
+        <GleanButton value={d.notes} onAccept={(v) => update({ notes: v })} fieldContext="notes and suspected root cause for a medical device software bug" config={config} />
       </FormField>
     </div>
   );

@@ -153,6 +153,11 @@ export interface CustomFieldIds {
   incidents?: string;
 }
 
+export interface GleanConfig {
+  enabled: boolean;
+  baseUrl: string; // e.g. "https://company-be.glean.com"
+}
+
 export interface AppConfig {
   jiraSiteUrl: string;
   governedProjects: string[];
@@ -163,6 +168,7 @@ export interface AppConfig {
   coreTeamOptions: string[];
   complexityOptions: string[];
   whereToHaveCaughtOptions: string[];
+  glean?: GleanConfig;
 }
 
 // ─── Wizard-specific ─────────────────────────────────────────────────────────

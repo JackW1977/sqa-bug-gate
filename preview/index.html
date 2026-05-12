@@ -160,6 +160,9 @@ const INITIAL = {
 
   // Step 9 — Duplicate Search
   searchDone: false, searchResults: [], dupOutcome: "", dupLinked: [],
+
+  // Glean AI
+  gleanEnabled: true,
 };
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
@@ -194,6 +197,68 @@ function Banner({ type="info", title, children }) {
       padding:"10px 14px",marginBottom:14,color:c.color,fontSize:13}}>
       {title && <strong style={{display:"block",marginBottom:3}}>{title}</strong>}
       {children}
+    </div>
+  );
+}
+
+// ─── Glean AI mock button ─────────────────────────────────────────────────────
+
+function GleanBtn({ value, onAccept, context, enabled }) {
+  const [status, setStatus] = React.useState("idle"); // idle | loading | preview | error
+  const [suggestion, setSuggestion] = React.useState("");
+
+  if (!enabled || !value || !value.trim()) return null;
+
+  function mockRephrase(text) {
+    // Light formal transformation for demo purposes
+    return text.trim()
+      .replace(/doesn't/g, "does not").replace(/don't/g, "do not")
+      .replace(/isn't/g, "is not").replace(/can't/g, "cannot")
+      .replace(/won't/g, "will not").replace(/it's/g, "it is")
+      .replace(/\bi\b/g, "I")
+      .replace(/^[a-z]/, c => c.toUpperCase())
+      .replace(/([^.!?])$/, "$1.");
+  }
+
+  function handleClick() {
+    setStatus("loading");
+    setTimeout(() => {
+      setSuggestion(mockRephrase(value));
+      setStatus("preview");
+    }, 1200);
+  }
+
+  const sBtn = (bg, color) => ({
+    padding:"3px 10px", fontSize:12, fontWeight:600,
+    border:"none", borderRadius:3, cursor:"pointer", background:bg, color,
+  });
+
+  if (status === "loading") return (
+    <div style={{marginTop:4,display:"flex",justifyContent:"flex-end"}}>
+      <span style={{fontSize:12,color:"#5243AA"}}>✨ Rephrasing…</span>
+    </div>
+  );
+
+  if (status === "preview") return (
+    <div style={{marginTop:6,padding:"10px 12px",background:"#F3F0FF",
+      border:"1px solid #C0B6F2",borderRadius:4}}>
+      <p style={{margin:"0 0 6px",fontSize:11,fontWeight:700,color:"#5243AA",
+        textTransform:"uppercase",letterSpacing:"0.04em"}}>✨ Glean Suggestion</p>
+      <p style={{margin:"0 0 10px",fontSize:13,color:"var(--gray-900)",whiteSpace:"pre-wrap"}}>{suggestion}</p>
+      <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+        <button style={sBtn("#DFE1E6","#344563")} onClick={()=>setStatus("idle")}>Discard</button>
+        <button style={sBtn("#5243AA","#fff")} onClick={()=>{onAccept(suggestion);setStatus("idle");}}>Accept</button>
+      </div>
+    </div>
+  );
+
+  // idle
+  return (
+    <div style={{marginTop:4,display:"flex",justifyContent:"flex-end"}}>
+      <button style={sBtn("#EAE6FF","#5243AA")} onClick={handleClick}
+        title="Use Glean AI to rephrase this field">
+        ✨ Rephrase with Glean
+      </button>
     </div>
   );
 }
@@ -313,10 +378,12 @@ function StepSummary({ d, set }) {
       <Field label="Problem Statement (user-visible symptom)" required hint="What does the user observe? No root-cause guesses.">
         <input type="text" value={d.problemStatement} placeholder="e.g. Bronchoscope view freezes and turns black"
           onChange={e=>set({problemStatement:e.target.value})} style={inp} />
+        <GleanBtn value={d.problemStatement} onAccept={v=>set({problemStatement:v})} context="user-visible problem statement" enabled={d.gleanEnabled} />
       </Field>
       <Field label="When / Under What Condition" required hint="e.g. when connecting via USB on a cold boot">
         <input type="text" value={d.conditionClause} placeholder="e.g. when starting a new procedure after TPS restart"
           onChange={e=>set({conditionClause:e.target.value})} style={inp} />
+        <GleanBtn value={d.conditionClause} onAccept={v=>set({conditionClause:v})} context="condition clause describing when the bug occurs" enabled={d.gleanEnabled} />
       </Field>
       {assembled && (
         <div style={{background:"var(--gray-50)",border:"1px solid var(--gray-100)",borderRadius:4,padding:"10px 14px",marginTop:6}}>
@@ -344,6 +411,7 @@ function StepPreconditions({ d, set }) {
         <textarea rows={3} value={d.hardwareConfig}
           placeholder="e.g. NovaCyclone Gen2 · TIC v4 · USB Bronchoscope BC-12 · Standard OR cart · Win 11 TPS workstation"
           onChange={e=>set({hardwareConfig:e.target.value})} style={{...inp,resize:"vertical"}} />
+        <GleanBtn value={d.hardwareConfig} onAccept={v=>set({hardwareConfig:v})} context="hardware configuration listing" enabled={d.gleanEnabled} />
       </Field>
       <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:12,cursor:"pointer"}}>
         <input type="checkbox" checked={d.noPreconditions} onChange={e=>set({noPreconditions:e.target.checked})} />
@@ -360,6 +428,7 @@ function StepPreconditions({ d, set }) {
           <textarea rows={4} value={d.preconditions}
             placeholder={"1. System at home screen after clean boot (≥5 min uptime)\n2. Logged in as Clinical Operator\n3. No active case in progress\n4. BC-12 USB scope connected and LED green\n5. TPS planning complete for test case #TC-4521"}
             onChange={e=>set({preconditions:e.target.value})} style={{...inp,resize:"vertical"}} />
+          <GleanBtn value={d.preconditions} onAccept={v=>set({preconditions:v})} context="list of preconditions to reproduce the bug" enabled={d.gleanEnabled} />
         </Field>
       )}
       <div style={{borderTop:"1px solid var(--gray-100)",marginTop:20,paddingTop:20}}>
@@ -367,6 +436,7 @@ function StepPreconditions({ d, set }) {
           <input type="text" value={d.initialState}
             placeholder="e.g. At home screen, BC-12 scope connected, no active case, TPS planning complete"
             onChange={e=>set({initialState:e.target.value})} style={inp} />
+          <GleanBtn value={d.initialState} onAccept={v=>set({initialState:v})} context="initial system state before reproduction steps" enabled={d.gleanEnabled} />
         </Field>
         <div style={{marginBottom:14}}>
           <label style={{display:"block",fontWeight:600,fontSize:13,marginBottom:8,color:"var(--gray-900)"}}>
@@ -405,16 +475,19 @@ function StepExpAct({ d, set }) {
         <textarea rows={4} value={d.expectedBehavior}
           placeholder="e.g. The bronchoscope live feed should appear in the SW navigation view within 3 seconds of the scope being detected."
           onChange={e=>set({expectedBehavior:e.target.value})} style={{...inp,resize:"vertical"}} />
+        <GleanBtn value={d.expectedBehavior} onAccept={v=>set({expectedBehavior:v})} context="expected system behavior per design/requirements" enabled={d.gleanEnabled} />
       </Field>
       <Field label="Actual Behavior" required hint="Exactly what was observed, including UI state and error messages.">
         <textarea rows={4} value={d.actualBehavior}
           placeholder="e.g. The navigation view remains black with an infinite spinner. No error toast. The BC-12 LED is solid green indicating hardware is active. Timeout occurs after ~60s with 'Scope connection lost' error."
           onChange={e=>set({actualBehavior:e.target.value})} style={{...inp,resize:"vertical"}} />
+        <GleanBtn value={d.actualBehavior} onAccept={v=>set({actualBehavior:v})} context="actual observed behavior including error messages and UI state" enabled={d.gleanEnabled} />
       </Field>
       <Field label="Notes / Suspected Cause" hint="Optional — theories, related observations (SW log patterns, prior tickets).">
         <textarea rows={3} value={d.notes}
           placeholder="e.g. SW-3944 was a similar symptom fixed in 1C.2; may be regression. TPS log shows USB initialisation timeout at T+2.1s."
           onChange={e=>set({notes:e.target.value})} style={{...inp,resize:"vertical"}} />
+        <GleanBtn value={d.notes} onAccept={v=>set({notes:v})} context="notes and suspected root cause" enabled={d.gleanEnabled} />
       </Field>
     </div>
   );
@@ -433,16 +506,19 @@ function StepEvidence({ d, set }) {
         <textarea rows={2} value={d.screenshots}
           placeholder="e.g. SW_scope_black_screen_2025-05-06_14-32.png, tps_ui_state_after_timeout.png"
           onChange={e=>set({screenshots:e.target.value})} style={{...inp,resize:"vertical"}} />
+        <GleanBtn value={d.screenshots} onAccept={v=>set({screenshots:v})} context="screenshot references for the bug report" enabled={d.gleanEnabled} />
       </Field>
       <Field label="Video References">
         <textarea rows={2} value={d.videos}
           placeholder="e.g. SW_repro_cold_boot_2025-05-06.mp4 (90s, captures full repro sequence)"
           onChange={e=>set({videos:e.target.value})} style={{...inp,resize:"vertical"}} />
+        <GleanBtn value={d.videos} onAccept={v=>set({videos:v})} context="video recording references" enabled={d.gleanEnabled} />
       </Field>
       <Field label="Log Collection Details" hint="Tool name, time window, timezone. Critical for SW diagnostics.">
         <textarea rows={3} value={d.logs}
           placeholder="e.g. TPS system log: 2025-05-06 14:28–14:35 UTC-7, collected via Log Collector v2.1. Scope driver log same window. Robot arm CAN bus log not relevant."
           onChange={e=>set({logs:e.target.value})} style={{...inp,resize:"vertical"}} />
+        <GleanBtn value={d.logs} onAccept={v=>set({logs:v})} context="log collection details including tool, time window, and timezone" enabled={d.gleanEnabled} />
       </Field>
       <Field label="Test Case IDs / Run IDs / Plan Links">
         <textarea rows={2} value={d.testIds}
@@ -902,6 +978,11 @@ function App() {
         <button onClick={()=>{setView("wizard");setSubmitted(false);}} style={navBtn(view==="wizard","#0065FF")}>Wizard</button>
         <button onClick={()=>setView("panel_fail")} style={navBtn(view==="panel_fail","#0065FF")}>Panel — FAILED</button>
         <button onClick={()=>setView("panel_pass")} style={navBtn(view==="panel_pass","#0065FF")}>Panel — PASSED</button>
+        <button onClick={()=>set({gleanEnabled:!d.gleanEnabled})}
+          style={{...navBtn(d.gleanEnabled,"#5243AA"),marginLeft:8}}
+          title="Toggle Glean AI rephrase buttons on all text fields">
+          ✨ Glean: {d.gleanEnabled?"ON":"OFF"}
+        </button>
       </div>
 
       {/* Debug bar */}

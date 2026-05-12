@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { SQABugData, AppConfig, SQAEvidenceData } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
+import GleanButton from '../common/GleanButton';
 
 interface Props {
   bugData: SQABugData;
@@ -22,7 +23,7 @@ const inp: React.CSSProperties = {
   borderRadius: '4px', fontSize: '14px', fontFamily: 'inherit', resize: 'vertical',
 };
 
-const Step7Evidence: React.FC<Props> = ({ bugData, onChange, onValidate }) => {
+const Step7Evidence: React.FC<Props> = ({ bugData, onChange, onValidate, config }) => {
   const d = bugData.evidence;
   const [touched, setTouched] = useState(false);
   const error = validate(d);
@@ -54,12 +55,14 @@ const Step7Evidence: React.FC<Props> = ({ bugData, onChange, onValidate }) => {
         <textarea rows={2} value={d.screenshotReferences}
           placeholder="e.g. scope_black_screen_2024-01-15.png, ui_state_after_freeze.png"
           onChange={(e) => update({ screenshotReferences: e.target.value })} style={inp} />
+        <GleanButton value={d.screenshotReferences} onAccept={(v) => update({ screenshotReferences: v })} fieldContext="screenshot and photo references for a medical device software bug report" config={config} />
       </FormField>
 
       <FormField label="Video References" hint="Especially useful for timing-sensitive or intermittent issues.">
         <textarea rows={2} value={d.videoReferences}
           placeholder="e.g. repro_video_2024-01-15_14-32.mp4 (scope disconnect sequence)"
           onChange={(e) => update({ videoReferences: e.target.value })} style={inp} />
+        <GleanButton value={d.videoReferences} onAccept={(v) => update({ videoReferences: v })} fieldContext="video recording references describing the timing-sensitive reproduction sequence" config={config} />
       </FormField>
 
       <FormField label="Log Collection Details" required={!d.screenshotReferences && !d.videoReferences && !d.testCaseIds}
@@ -67,6 +70,7 @@ const Step7Evidence: React.FC<Props> = ({ bugData, onChange, onValidate }) => {
         <textarea rows={3} value={d.logDetails}
           placeholder="e.g. TPS system log, 2024-01-15 14:30–14:35 UTC-8, collected via Log Collector v2.1. Scope driver log same window."
           onChange={(e) => update({ logDetails: e.target.value })} style={inp} />
+        <GleanButton value={d.logDetails} onAccept={(v) => update({ logDetails: v })} fieldContext="log collection details including tool name, time window, and timezone for a medical device bug" config={config} />
       </FormField>
 
       <FormField label="Test Case IDs / Run IDs / Plan Links"

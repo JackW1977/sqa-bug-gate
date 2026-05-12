@@ -42,6 +42,10 @@ app:
   name: SQA Bug Gate
 
 permissions:
+  external:
+    fetch:
+      backend:
+        - '*.glean.com'
   scopes:
     - read:jira-work
     - write:jira-work

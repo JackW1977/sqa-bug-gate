@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { SQABugData, AppConfig, CategoryConfig, SQASummaryData } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
+import GleanButton from '../common/GleanButton';
 
 interface Props {
   bugData: SQABugData;
@@ -99,6 +100,7 @@ const Step1Summary: React.FC<Props> = ({ bugData, onChange, onValidate, config }
           onChange={(e) => update({ problemStatement: e.target.value })}
           style={inp}
         />
+        <GleanButton value={d.problemStatement} onAccept={(v) => update({ problemStatement: v })} fieldContext="user-visible problem statement for a medical device SQA bug report" config={config} />
       </FormField>
 
       <FormField
@@ -113,6 +115,7 @@ const Step1Summary: React.FC<Props> = ({ bugData, onChange, onValidate, config }
           onChange={(e) => update({ conditionClause: e.target.value })}
           style={inp}
         />
+        <GleanButton value={d.conditionClause} onAccept={(v) => update({ conditionClause: v })} fieldContext="condition clause describing when/under what condition the bug occurs" config={config} />
       </FormField>
 
       {assembled && (
