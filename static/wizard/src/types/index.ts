@@ -172,7 +172,6 @@ export interface AppConfig {
 export type WizardStep =
   | 'project'
   | 'summary'
-  | 'environment'
   | 'preconditions'
   | 'stepsToReproduce'
   | 'expectedActual'
@@ -192,7 +191,6 @@ export interface WizardStepMeta {
 export const WIZARD_STEPS: WizardStepMeta[] = [
   { id: 'project', label: 'Project' },
   { id: 'summary', label: 'Summary' },
-  { id: 'environment', label: 'Environment' },
   { id: 'preconditions', label: 'Preconditions' },
   { id: 'stepsToReproduce', label: 'Steps to Reproduce' },
   { id: 'expectedActual', label: 'Expected vs Actual' },

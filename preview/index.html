@@ -88,7 +88,7 @@ const MOCK_CLOSED = [
 ];
 
 const WIZARD_STEPS = [
-  "Project", "Summary", "Environment", "Preconditions",
+  "Project", "Summary", "Preconditions",
   "Steps to Reproduce", "Expected vs Actual", "Impact",
   "Evidence", "Traceability", "Classification",
   "Duplicate Search", "Review & Submit"
@@ -105,7 +105,7 @@ const INITIAL = {
   problemStatement: "Bronchoscope feed fails to initialize and remains black",
   conditionClause: "when connecting USB scope on a cold-boot system",
 
-  // Step 2 — Environment
+  // Step 2 — Preconditions & Hardware
   softwareVersion: "1.4.0.1-37",
   branchRelease: "1D.0 dev",
   buildNumber: "1.4.0.1-37",
@@ -115,12 +115,12 @@ const INITIAL = {
   dataProcedureContext: "Post-planning phantom lung case, 10 min session uptime",
   unknownReason: "",
 
-  // Step 3 — Preconditions
+  // (combined into Step 2)
   noPreconditions: false,
   noPreconditionsExp: "",
   preconditions: "1. System at home screen after clean boot (≥5 min uptime)\n2. Logged in as Clinical Operator (no admin override)\n3. No active case in progress\n4. BC-12 USB bronchoscope connected — LED indicator green\n5. TPS planning complete for test case #TC-4521 (phantom lung)",
 
-  // Step 4 — Steps to Reproduce
+  // Step 3 — Steps to Reproduce
   initialState: "Home screen, BC-12 scope connected and LED green, no active case",
   steps: [
     "Verify bronchoscope LED is green on home screen",
@@ -131,36 +131,36 @@ const INITIAL = {
   reproducibility: "3/3",
   intermittentNotes: "",
 
-  // Step 5 — Expected vs Actual
+  // Step 4 — Expected vs Actual
   expectedBehavior: "Bronchoscope feed initializes within 2 s of entering navigation view; live video is visible in the feed panel.",
   actualBehavior: "Feed panel remains fully black. No error message shown. Scope LED remains green. Session must be restarted to recover.",
   notes: "Suspected USB driver initialization race condition on cold boot — not confirmed. See log SW-LOG-2026-05-12-0937.",
 
-  // Step 6 — Impact
+  // Step 5 — Impact
   userWorkflowImpact: "Clinician cannot visualize the bronchoscope during the navigation phase. Full session restart required (~10 min delay). Observed across 3 consecutive procedure simulations.",
   safetyRelevance: "",
   workaroundDesc: "Disconnect and reconnect the USB scope, then restart the TPS session.",
   workaroundPracticality: "cumbersome",
   occurrence: "frequent",
 
-  // Step 7 — Evidence
+  // Step 6 — Evidence
   screenshots: "SW-feed-black-01.png, SW-feed-black-02.png",
   videos: "SW-repro-video-TC4521.mp4",
   logs: "SW-LOG-2026-05-12-0937 (TPS log, UTC-7, 09:37–09:52)",
   testIds: "TC-4521, TC-4522",
 
-  // Step 8 — Traceability
+  // Step 7 — Traceability
   reqIds: "REQ-1042, REQ-1053",
   riskIds: "RISK-214",
   relatedKeys: "SW-3944",
 
-  // Step 9 — Classification
+  // Step 8 — Classification
   bugType: "Bug",
   impactCat: "Major",
   prioritySug: "High",
   priorityRationale: "Blocks the core navigation workflow on cold-boot; no graceful recovery path; cumbersome workaround not acceptable for clinical simulation.",
 
-  // Step 10 — Duplicate Search
+  // Step 9 — Duplicate Search
   searchDone: false, searchResults: [], dupOutcome: "", dupLinked: [],
 };
 
@@ -353,55 +353,20 @@ function StepSummary({ d, set }) {
   );
 }
 
-// ─── Step 2 – Environment ──────────────────────────────────────────────────────
-
-function StepEnvironment({ d, set }) {
-  return (
-    <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>2 — Environment</h3>
-      <Banner type="info">Tip for SW: use the format <strong>1D.0 dev / 1.4.0.1-XX</strong> or <strong>1D.0 release / 1.4.0.1-YY</strong> for branch/build.</Banner>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-        <Field label="Software Version / Build ID" required hint="e.g. 1.4.0.1-37">
-          <input type="text" value={d.softwareVersion} placeholder="1.4.0.1-37"
-            onChange={e=>set({softwareVersion:e.target.value})} style={inp} />
-        </Field>
-        <Field label="Branch / Release Line" required hint="1C.2 / 1D.0 dev / 1D.0 release">
-          <input type="text" value={d.branchRelease} placeholder="1D.0 dev"
-            onChange={e=>set({branchRelease:e.target.value})} style={inp} />
-        </Field>
-        <Field label="Build Number" hint="e.g. 1.4.0.1-XX">
-          <input type="text" value={d.buildNumber} placeholder="1.4.0.1-XX"
-            onChange={e=>set({buildNumber:e.target.value})} style={inp} />
-        </Field>
-        <Field label="Mode / Key Settings" required hint="Simulation vs live, feature flags, locale, network">
-          <input type="text" value={d.mode} placeholder="Live, EN-US, Wi-Fi, Fluoroscopy ON"
-            onChange={e=>set({mode:e.target.value})} style={inp} />
-        </Field>
-      </div>
-      <Field label="Hardware Configuration" required hint="System type, TIC model, controller, scope, peripherals">
-        <textarea rows={3} value={d.hardwareConfig}
-          placeholder="e.g. NovaCyclone Gen2, TIC v4, USB bronchoscope BC-12, standard OR cart, Win11 TPS workstation"
-          onChange={e=>set({hardwareConfig:e.target.value})} style={{...inp,resize:"vertical"}} />
-      </Field>
-      <Field label="Unknown – Reason" hint="Fill if any field is genuinely unknown (e.g. historic re-test)">
-        <textarea rows={2} value={d.unknownReason}
-          placeholder="e.g. Historic re-test – build ID not recorded in test log"
-          onChange={e=>set({unknownReason:e.target.value})}
-          style={{...inp,resize:"vertical",borderColor:d.unknownReason?"var(--orange)":"var(--gray-100)"}} />
-      </Field>
-    </div>
-  );
-}
-
-// ─── Step 3 – Preconditions ────────────────────────────────────────────────────
+// ─── Step 2 – Preconditions & Hardware ────────────────────────────────────────
 
 function StepPreconditions({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>3 — Preconditions</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>2 — Preconditions & Hardware</h3>
       <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
-        Describe the exact system state before step 1: uptime, connection state, user role, prior actions.
+        Document the hardware in use and the system state before step 1 of reproduction.
       </p>
+      <Field label="Hardware Configuration" required hint="System type, TIC model, controller, scope, peripherals">
+        <textarea rows={3} value={d.hardwareConfig}
+          placeholder="e.g. NovaCyclone Gen2 · TIC v4 · USB Bronchoscope BC-12 · Standard OR cart · Win 11 TPS workstation"
+          onChange={e=>set({hardwareConfig:e.target.value})} style={{...inp,resize:"vertical"}} />
+      </Field>
       <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,cursor:"pointer"}}>
         <input type="checkbox" checked={d.noPreconditions} onChange={e=>set({noPreconditions:e.target.checked})} />
         <span style={{fontWeight:500,fontSize:14}}>No special preconditions</span>
@@ -423,7 +388,7 @@ function StepPreconditions({ d, set }) {
   );
 }
 
-// ─── Step 4 – Steps to Reproduce ──────────────────────────────────────────────
+// ─── Step 3 – Steps to Reproduce ──────────────────────────────────────────────
 
 function StepRepro({ d, set }) {
   function updateStep(i, v) { const s=[...d.steps]; s[i]=v; set({steps:s}); }
@@ -432,7 +397,7 @@ function StepRepro({ d, set }) {
   const REPRO = ["3/3","2/3","1/3","5/5","2/5","1/5","2/10","1/10","Observed once","Consistent","Intermittent"];
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>4 — Steps to Reproduce</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>3 — Steps to Reproduce</h3>
       <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
         Number every action from a known starting state. Another SW engineer must be able to follow these steps cold.
       </p>
@@ -477,12 +442,12 @@ function StepRepro({ d, set }) {
   );
 }
 
-// ─── Step 5 – Expected vs Actual ──────────────────────────────────────────────
+// ─── Step 4 – Expected vs Actual ──────────────────────────────────────────────
 
 function StepExpAct({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>5 — Expected vs Actual Behavior</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>4 — Expected vs Actual Behavior</h3>
       <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
         Expected = per design/requirements. Actual = what was observed. Root-cause theories → Notes only.
       </p>
@@ -505,12 +470,12 @@ function StepExpAct({ d, set }) {
   );
 }
 
-// ─── Step 6 – Impact ──────────────────────────────────────────────────────────
+// ─── Step 5 – Impact ──────────────────────────────────────────────────────────
 
 function StepImpact({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>6 — Impact (SQA View)</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>5 — Impact (SQA View)</h3>
       <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
         Describe impact in user/workflow terms to help triage understand urgency.
       </p>
@@ -552,12 +517,12 @@ function StepImpact({ d, set }) {
   );
 }
 
-// ─── Step 7 – Evidence ────────────────────────────────────────────────────────
+// ─── Step 6 – Evidence ────────────────────────────────────────────────────────
 
 function StepEvidence({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>7 — Evidence & Attachments</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>6 — Evidence & Attachments</h3>
       <Banner type="info">
         ℹ️ Attach actual files to the SW Jira issue after creation. Reference file names/locations below.
       </Banner>
@@ -585,12 +550,12 @@ function StepEvidence({ d, set }) {
   );
 }
 
-// ─── Step 8 – Traceability ────────────────────────────────────────────────────
+// ─── Step 7 – Traceability ────────────────────────────────────────────────────
 
 function StepTrace({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>8 — Traceability Links</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>7 — Traceability Links</h3>
       <Banner type="info">All fields optional. Do not guess requirement IDs.</Banner>
       <Field label="Requirement ID(s)" hint="SW requirement IDs, e.g. SW-REQ-1042">
         <input type="text" value={d.reqIds} placeholder="SW-REQ-1042, SW-REQ-1053"
@@ -608,12 +573,12 @@ function StepTrace({ d, set }) {
   );
 }
 
-// ─── Step 9 – Classification ──────────────────────────────────────────────────
+// ─── Step 8 – Classification ──────────────────────────────────────────────────
 
 function StepClass({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>9 — Classification Suggestion</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>8 — Classification Suggestion</h3>
       <Banner type="warning">⚠️ SQA suggestion only — final severity/priority set by triage/product/engineering.</Banner>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
         <Field label="Type">
@@ -643,7 +608,7 @@ function StepClass({ d, set }) {
   );
 }
 
-// ─── Step 10 – Duplicate Search ───────────────────────────────────────────────
+// ─── Step 9 – Duplicate Search ───────────────────────────────────────────────
 
 function StepDupSearch({ d, set }) {
   const [searching, setSearching] = React.useState(false);
@@ -676,7 +641,7 @@ function StepDupSearch({ d, set }) {
 
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>10 — Duplicate Search — SW Project</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}<>9 — Duplicate< Search — SW Project</h3>
       <p style={{margin:"0 0 10px",fontSize:13,color:"var(--gray-500)"}}>
         Searching <strong>noahmed.atlassian.net</strong> / project <strong>SW</strong>. Run before creating.
       </p>
@@ -778,16 +743,14 @@ function StepDupSearch({ d, set }) {
   );
 }
 
-// ─── Step 11 – Review & Submit ───────────────────────────────────────────────
+// ─── Step 10 – Review & Submit ───────────────────────────────────────────────
 
 function StepReview({ d, onSubmit, submitting }) {
   const checks = [
     {label:"Summary — category, sub-category, user-visible problem",
      ok:!!d.category&&!!d.subCategory&&d.problemStatement.length>=10&&!!d.conditionClause},
-    {label:"Environment — version, branch, hardware, mode",
-     ok:(!!d.softwareVersion||!!d.unknownReason)&&(!!d.branchRelease||!!d.unknownReason)&&(!!d.hardwareConfig||!!d.unknownReason)&&(!!d.mode||!!d.unknownReason)},
-    {label:"Preconditions — documented or explicitly none",
-     ok:(d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions)},
+    {label:"Preconditions & Hardware — hardware config documented, preconditions described",
+     ok:!!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions))},
     {label:"Steps to reproduce — ≥2 steps, initial state, reproducibility",
      ok:!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2&&!!d.reproducibility},
     {label:"Expected vs actual behavior — clearly differentiated",
@@ -851,7 +814,7 @@ function PanelPreview({ issueKey, scenario }) {
       passed: false,
       items: [
         {label:"Summary — category, sub-category, user-visible problem",ok:true},
-        {label:"Environment — version, branch, hardware, mode",ok:true},
+        {label:"Preconditions & Hardware — hardware config, preconditions",ok:true},
         {label:"Preconditions — documented or explicitly none",ok:false,msg:"Preconditions required, or check 'No special preconditions' with explanation."},
         {label:"Steps to reproduce — numbered, concrete, from initial state",ok:true},
         {label:"Expected vs actual behavior — clearly differentiated",ok:false,msg:"Expected and actual must be different."},
@@ -865,7 +828,7 @@ function PanelPreview({ issueKey, scenario }) {
       passed: true,
       items: [
         {label:"Summary — category, sub-category, user-visible problem",ok:true},
-        {label:"Environment — version, branch, hardware, mode",ok:true},
+        {label:"Preconditions & Hardware — hardware config, preconditions",ok:true},
         {label:"Preconditions — documented or explicitly none",ok:true},
         {label:"Steps to reproduce — numbered, concrete, from initial state",ok:true},
         {label:"Expected vs actual behavior — clearly differentiated",ok:true},
@@ -938,8 +901,7 @@ function App() {
   const stepValid = [
     !!d.projectKey,
     !!d.category&&!!d.subCategory&&d.problemStatement.length>=10&&!!d.conditionClause,
-    (!!d.softwareVersion||!!d.unknownReason)&&(!!d.hardwareConfig||!!d.unknownReason)&&(!!d.mode||!!d.unknownReason),
-    (d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions),
+    !!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions)),
     !!d.initialState&&d.steps.filter(s=>s.trim()).length>=2&&!!d.reproducibility,
     !!d.expectedBehavior&&!!d.actualBehavior,
     !!d.userWorkflowImpact&&!!d.occurrence,
@@ -962,7 +924,6 @@ function App() {
   const STEPS_COMPONENTS = [
     <StepProject d={d} set={set} />,
     <StepSummary d={d} set={set} />,
-    <StepEnvironment d={d} set={set} />,
     <StepPreconditions d={d} set={set} />,
     <StepRepro d={d} set={set} />,
     <StepExpAct d={d} set={set} />,

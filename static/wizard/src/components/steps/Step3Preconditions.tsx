@@ -10,7 +10,14 @@ interface Props {
   config: AppConfig;
 }
 
-function validate(d: SQAPreconditionsData): string | null {
+const inp: React.CSSProperties = {
+  width: '100%', padding: '8px', border: '2px solid #DFE1E6',
+  borderRadius: '4px', fontSize: '14px', fontFamily: 'inherit',
+};
+
+function validate(d: SQAPreconditionsData, hardwareConfig: string): string | null {
+  if (!hardwareConfig.trim())
+    return 'Hardware configuration is required.';
   if (!d.noPreconditions && !d.preconditions.trim())
     return 'Describe preconditions, or check "No special preconditions" and explain.';
   if (d.noPreconditions && !d.noPreconditionsExplanation.trim())
@@ -18,15 +25,11 @@ function validate(d: SQAPreconditionsData): string | null {
   return null;
 }
 
-const inp: React.CSSProperties = {
-  width: '100%', padding: '8px', border: '2px solid #DFE1E6',
-  borderRadius: '4px', fontSize: '14px', fontFamily: 'inherit',
-};
-
 const Step3Preconditions: React.FC<Props> = ({ bugData, onChange, onValidate }) => {
   const d = bugData.preconditions;
+  const hardwareConfig = bugData.environment.hardwareConfig;
   const [touched, setTouched] = useState(false);
-  const error = validate(d);
+  const error = validate(d, hardwareConfig);
 
   useEffect(() => { onValidate(!error); }, [error]);
 
@@ -35,14 +38,26 @@ const Step3Preconditions: React.FC<Props> = ({ bugData, onChange, onValidate }) 
     setTouched(true);
   }
 
+  function updateHardware(value: string) {
+    onChange({ environment: { ...bugData.environment, hardwareConfig: value } });
+    setTouched(true);
+  }
+
   return (
     <div>
-      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>3 — Preconditions</h3>
+      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>2 — Preconditions & Hardware</h3>
       <p style={{ margin: '0 0 16px', color: '#5E6C84', fontSize: '13px' }}>
-        Describe the system state before step 1. Examples: uptime, connection state, user role, data loaded, prior actions performed.
+        Document the hardware in use and the system state before step 1 of reproduction.
       </p>
 
       {touched && error && <ValidationMessage>{error}</ValidationMessage>}
+
+      <FormField label="Hardware Configuration" required hint="System type, TIC model, controller, scope, peripherals">
+        <textarea rows={3} value={hardwareConfig}
+          placeholder="e.g. NovaCyclone Gen2, TIC v4, USB bronchoscope BC-12, standard OR cart, Win 11 TPS workstation"
+          onChange={(e) => updateHardware(e.target.value)}
+          style={{ ...inp, resize: 'vertical' }} />
+      </FormField>
 
       <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', cursor: 'pointer' }}>
         <input

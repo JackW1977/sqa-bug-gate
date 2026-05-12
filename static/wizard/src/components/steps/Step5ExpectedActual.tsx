@@ -42,7 +42,7 @@ const Step5ExpectedActual: React.FC<Props> = ({ bugData, onChange, onValidate })
 
   return (
     <div>
-      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>5 — Expected vs Actual Behavior</h3>
+      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>4 — Expected vs Actual Behavior</h3>
       <p style={{ margin: '0 0 16px', color: '#5E6C84', fontSize: '13px' }}>
         Expected = what the product should do per design/requirements. Actual = what it actually did. Keep root-cause theories in Notes.
       </p>

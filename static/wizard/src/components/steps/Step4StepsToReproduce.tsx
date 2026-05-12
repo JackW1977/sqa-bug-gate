@@ -55,7 +55,7 @@ const Step4StepsToReproduce: React.FC<Props> = ({ bugData, onChange, onValidate 
 
   return (
     <div>
-      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>4 — Steps to Reproduce</h3>
+      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>3 — Steps to Reproduce</h3>
       <p style={{ margin: '0 0 16px', color: '#5E6C84', fontSize: '13px' }}>
         Number every action from a known starting state. Be concrete — another engineer must be able to follow these steps cold.
       </p>

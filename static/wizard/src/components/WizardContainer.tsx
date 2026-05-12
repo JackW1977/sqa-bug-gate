@@ -9,8 +9,7 @@ import ValidationMessage from './common/ValidationMessage';
 // Step components
 import StepProject from './steps/StepProject';
 import Step1Summary from './steps/Step1Summary';
-import Step2Environment from './steps/Step2Environment';
-import Step3Preconditions from './steps/Step3Preconditions';
+import Step2Preconditions from './steps/Step3Preconditions';
 import Step4StepsToReproduce from './steps/Step4StepsToReproduce';
 import Step5ExpectedActual from './steps/Step5ExpectedActual';
 import Step6Impact from './steps/Step6Impact';
@@ -123,8 +122,7 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
   const stepMap: Record<string, React.ReactNode> = {
     project:          <StepProject projects={projects} bugData={bugData} onChange={updateBugData} onValidate={setValid} config={config} />,
     summary:          <Step1Summary {...stepProps} />,
-    environment:      <Step2Environment {...stepProps} />,
-    preconditions:    <Step3Preconditions {...stepProps} />,
+    preconditions:    <Step2Preconditions {...stepProps} />,
     stepsToReproduce: <Step4StepsToReproduce {...stepProps} />,
     expectedActual:   <Step5ExpectedActual {...stepProps} />,
     impact:           <Step6Impact {...stepProps} />,

@@ -36,7 +36,7 @@ const Step7Evidence: React.FC<Props> = ({ bugData, onChange, onValidate }) => {
 
   return (
     <div>
-      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>7 — Evidence & Attachments</h3>
+      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>6 — Evidence & Attachments</h3>
       <p style={{ margin: '0 0 8px', color: '#5E6C84', fontSize: '13px' }}>
         Reference all supporting evidence below. Actual files must be attached directly to the Jira issue via its Attachments panel.
       </p>
