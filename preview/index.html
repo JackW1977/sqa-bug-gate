@@ -91,41 +91,7 @@ const WIZARD_STEPS = [
   "Project", "Summary", "Environment", "Preconditions",
   "Steps to Reproduce", "Expected vs Actual", "Impact",
   "Evidence", "Traceability", "Classification",
-  "Jira Fields", "Duplicate Search", "Review & Submit"
-];
-
-// ─── Jira template mock data ──────────────────────────────────────────────────
-const CORE_TEAM_OPTIONS = [
-  "Navigation","Visualization","Robotics","Platform","User Experience",
-  "Systems Engineering","Software Quality Assurance","Cloud & DevOps","Regulatory",
-];
-const COMPLEXITY_OPTIONS = ["Low","Medium","High","Very High"];
-const WHERE_CAUGHT_OPTIONS = [
-  "Unit Testing","Integration Testing","System Testing","Code Review",
-  "Design Review","Requirements Review","Regression Testing","Acceptance Testing","Not Applicable",
-];
-const MOCK_VERSIONS = [
-  {id:"v17",name:"17",released:false},{id:"v18",name:"18",released:false},
-  {id:"v19",name:"19",released:false},{id:"v16",name:"16",released:false},
-  {id:"v171",name:"17.1",released:false},{id:"v172",name:"17.2",released:false},
-  {id:"v173",name:"17.3",released:false},{id:"v174",name:"17.4",released:false},
-];
-const MOCK_FIX_VERSIONS = [
-  {id:"fv5",name:"0.19.0.6",released:false},{id:"fv7",name:"0.20.0.1",released:false},
-  {id:"fv8",name:"0.20.0.2",released:false},{id:"fv9",name:"0.20.0.3",released:false},
-  {id:"fv1",name:"0.19.0.4",released:true},{id:"fv2",name:"0.19.0.5",released:true},
-  {id:"fv3",name:"0.19.1.0",released:true},{id:"fv4",name:"0.19.2.0",released:true},
-];
-const MOCK_COMPONENTS = [
-  {id:"c1",name:"Navigation"},{id:"c2",name:"Visualization"},
-  {id:"c3",name:"Robotics"},{id:"c4",name:"Planning"},
-  {id:"c5",name:"TPS"},{id:"c6",name:"TDS"},
-  {id:"c7",name:"Cloud"},{id:"c8",name:"UI"},
-];
-const MOCK_SPRINTS = [
-  {id:"s47",name:"Sprint 47 – May 2026",state:"active"},
-  {id:"s48",name:"Sprint 48 – Jun 2026",state:"future"},
-  {id:"s49",name:"Sprint 49 – Jul 2026",state:"future"},
+  "Duplicate Search", "Review & Submit"
 ];
 
 // ─── Pre-populated test data (all steps valid on load) ───────────────────────
@@ -194,19 +160,7 @@ const INITIAL = {
   prioritySug: "High",
   priorityRationale: "Blocks the core navigation workflow on cold-boot; no graceful recovery path; cumbersome workaround not acceptable for clinical simulation.",
 
-  // Step 10 — Jira Fields
-  coreTeam: "Visualization",
-  affectsVersions: ["17", "17.1"],
-  fixVersions: ["0.20.0.1"],
-  components: ["Visualization", "Navigation"],
-  sprint: "s47",
-  complexity: "Medium",
-  whereToHaveCaught: "Integration Testing",
-  numberOfIncidents: "2",
-  relatedSoWItem: "SW-4100",
-  incidents: "INC-088, INC-091",
-
-  // Step 11 — Duplicate Search
+  // Step 10 — Duplicate Search
   searchDone: false, searchResults: [], dupOutcome: "", dupLinked: [],
 };
 
@@ -689,118 +643,7 @@ function StepClass({ d, set }) {
   );
 }
 
-// ─── Step 10 – Jira Fields ───────────────────────────────────────────────────
-
-function StepJiraFields({ d, set }) {
-  function toggleArr(field, name) {
-    const cur = d[field];
-    set({[field]: cur.includes(name) ? cur.filter(v=>v!==name) : [...cur,name]});
-  }
-  const boxStyle = {maxHeight:150,overflowY:"auto",border:"2px solid var(--gray-100)",
-    borderRadius:4,padding:8,background:"#FAFBFC"};
-  const tags = (arr) => arr.length>0 && (
-    <div style={{display:"flex",flexWrap:"wrap",gap:4,marginTop:6}}>
-      {arr.map(n=><span key={n} style={{background:"var(--blue-light)",color:"var(--blue)",
-        borderRadius:3,padding:"2px 7px",fontSize:12}}>{n}</span>)}
-    </div>
-  );
-  const err = !d.coreTeam ? "Core Team is required — mandatory field in the Jira issue form." : null;
-
-  return (
-    <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>10 — Jira Issue Fields</h3>
-      <p style={{margin:"0 0 10px",fontSize:13,color:"var(--gray-500)"}}>
-        Set Jira organizational and versioning fields matching the SW project bug template.
-        Core Team is required; other fields are optional but encouraged.
-      </p>
-      {err && <Banner type="error">{err}</Banner>}
-
-      <Field label="Core Team" required hint="Team responsible for this area of the product.">
-        <select value={d.coreTeam} onChange={e=>set({coreTeam:e.target.value})} style={inp}>
-          <option value="">— Select —</option>
-          {CORE_TEAM_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
-        </select>
-      </Field>
-
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-        <Field label="Affects Versions" hint="Version(s) where the bug was observed.">
-          <div style={boxStyle}>
-            {MOCK_VERSIONS.map(v=>(
-              <label key={v.id} style={{display:"flex",alignItems:"center",gap:8,padding:"2px 0",cursor:"pointer",fontSize:14}}>
-                <input type="checkbox" checked={d.affectsVersions.includes(v.name)} onChange={()=>toggleArr("affectsVersions",v.name)} />
-                {v.name}{!v.released&&<span style={{fontSize:10,color:"var(--blue)",marginLeft:4}}>(unreleased)</span>}
-              </label>
-            ))}
-          </div>
-          {tags(d.affectsVersions)}
-        </Field>
-        <Field label="Fix Versions" hint="Version(s) planned for the fix.">
-          <div style={boxStyle}>
-            {MOCK_FIX_VERSIONS.map(v=>(
-              <label key={v.id} style={{display:"flex",alignItems:"center",gap:8,padding:"2px 0",cursor:"pointer",fontSize:14}}>
-                <input type="checkbox" checked={d.fixVersions.includes(v.name)} onChange={()=>toggleArr("fixVersions",v.name)} />
-                {v.name}{!v.released&&<span style={{fontSize:10,color:"var(--blue)",marginLeft:4}}>(unreleased)</span>}
-              </label>
-            ))}
-          </div>
-          {tags(d.fixVersions)}
-        </Field>
-      </div>
-
-      <Field label="Components" hint="Jira components related to this bug.">
-        <div style={{...boxStyle,maxHeight:110,display:"grid",gridTemplateColumns:"1fr 1fr"}}>
-          {MOCK_COMPONENTS.map(c=>(
-            <label key={c.id} style={{display:"flex",alignItems:"center",gap:8,padding:"2px 0",cursor:"pointer",fontSize:14}}>
-              <input type="checkbox" checked={d.components.includes(c.name)} onChange={()=>toggleArr("components",c.name)} />
-              {c.name}
-            </label>
-          ))}
-        </div>
-        {tags(d.components)}
-      </Field>
-
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-        <Field label="Sprint" hint="Jira Software sprint field.">
-          <select value={d.sprint} onChange={e=>set({sprint:e.target.value})} style={inp}>
-            <option value="">— Select sprint —</option>
-            {MOCK_SPRINTS.map(s=><option key={s.id} value={s.id}>{s.name}{s.state==="active"?" ✓":""}</option>)}
-          </select>
-        </Field>
-        <Field label="Complexity">
-          <select value={d.complexity} onChange={e=>set({complexity:e.target.value})} style={inp}>
-            <option value="">— Select —</option>
-            {COMPLEXITY_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
-          </select>
-        </Field>
-      </div>
-
-      <Field label="Where should we have caught this in development?">
-        <select value={d.whereToHaveCaught} onChange={e=>set({whereToHaveCaught:e.target.value})} style={inp}>
-          <option value="">— Select —</option>
-          {WHERE_CAUGHT_OPTIONS.map(o=><option key={o} value={o}>{o}</option>)}
-        </select>
-      </Field>
-
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-        <Field label="Number of Incidents" hint="Count of documented incidents.">
-          <input type="number" min="0" value={d.numberOfIncidents}
-            onChange={e=>set({numberOfIncidents:e.target.value})} placeholder="0" style={inp} />
-        </Field>
-        <Field label="Related SoW Item" hint="Includes Bug and Epic tickets only.">
-          <input type="text" value={d.relatedSoWItem}
-            onChange={e=>set({relatedSoWItem:e.target.value})} placeholder="SW-1234" style={inp} />
-        </Field>
-      </div>
-
-      <Field label="Incidents" hint="Linked incident ticket keys, if any.">
-        <input type="text" value={d.incidents}
-          onChange={e=>set({incidents:e.target.value})} placeholder="INC-001, INC-002" style={inp} />
-      </Field>
-    </div>
-  );
-}
-
-// ─── Step 11 – Duplicate Search ───────────────────────────────────────────────
+// ─── Step 10 – Duplicate Search ───────────────────────────────────────────────
 
 function StepDupSearch({ d, set }) {
   const [searching, setSearching] = React.useState(false);
@@ -833,7 +676,7 @@ function StepDupSearch({ d, set }) {
 
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>11 — Duplicate Search — SW Project</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>10 — Duplicate Search — SW Project</h3>
       <p style={{margin:"0 0 10px",fontSize:13,color:"var(--gray-500)"}}>
         Searching <strong>noahmed.atlassian.net</strong> / project <strong>SW</strong>. Run before creating.
       </p>
@@ -935,7 +778,7 @@ function StepDupSearch({ d, set }) {
   );
 }
 
-// ─── Step 11 – Review & Submit ────────────────────────────────────────────────
+// ─── Step 11 – Review & Submit ───────────────────────────────────────────────
 
 function StepReview({ d, onSubmit, submitting }) {
   const checks = [
@@ -1102,7 +945,6 @@ function App() {
     !!d.userWorkflowImpact&&!!d.occurrence,
     !!(d.screenshots||d.videos||d.logs||d.testIds),
     true, true, // traceability + classification optional
-    !!d.coreTeam, // jiraFields — core team required
     d.searchDone&&!!d.dupOutcome,
     true,
   ];
@@ -1128,7 +970,6 @@ function App() {
     <StepEvidence d={d} set={set} />,
     <StepTrace d={d} set={set} />,
     <StepClass d={d} set={set} />,
-    <StepJiraFields d={d} set={set} />,
     <StepDupSearch d={d} set={set} />,
     <StepReview d={d} onSubmit={handleSubmit} submitting={submitting} />,
   ];

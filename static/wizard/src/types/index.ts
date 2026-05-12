@@ -180,7 +180,6 @@ export type WizardStep =
   | 'evidence'
   | 'traceability'
   | 'classification'
-  | 'jiraFields'
   | 'duplicateSearch'
   | 'review';
 
@@ -201,7 +200,6 @@ export const WIZARD_STEPS: WizardStepMeta[] = [
   { id: 'evidence', label: 'Evidence' },
   { id: 'traceability', label: 'Traceability', optional: true },
   { id: 'classification', label: 'Classification', optional: true },
-  { id: 'jiraFields', label: 'Jira Fields' },
   { id: 'duplicateSearch', label: 'Duplicate Search' },
   { id: 'review', label: 'Review & Submit' },
 ];
