@@ -24,27 +24,15 @@ function clientChecklist(data: SQABugData): ChecklistItem[] {
     message: sumOk ? '' : 'Category, sub-category, problem statement (≥10 chars), and condition clause are required.',
   });
 
-  const env = data.environment;
-  const envOk = !!(env.softwareVersion || env.unknownReason) && !!(env.branchRelease || env.unknownReason) &&
-    !!(env.hardwareConfig || env.unknownReason) && !!(env.mode || env.unknownReason);
-  items.push({
-    key: 'environment', label: 'Environment — version, branch, hardware, mode',
-    passed: envOk, message: envOk ? '' : 'Fill all environment fields or provide an "Unknown – reason".',
-  });
-
   const pre = data.preconditions;
-  const preOk = (pre.noPreconditions && !!pre.noPreconditionsExplanation.trim()) ||
-    (!pre.noPreconditions && !!pre.preconditions.trim());
-  items.push({
-    key: 'preconditions', label: 'Preconditions — documented or explicitly none',
-    passed: preOk, message: preOk ? '' : 'Preconditions required, or check "No special preconditions" with explanation.',
-  });
-
   const str = data.stepsToReproduce;
-  const strOk = !!str.initialState.trim() && str.steps.filter(s => s.trim()).length >= 2 && !!str.reproducibility.trim();
+  const hw = data.environment.hardwareConfig;
+  const preOk = !!hw.trim() &&
+    ((pre.noPreconditions && !!pre.noPreconditionsExplanation.trim()) || (!pre.noPreconditions && !!pre.preconditions.trim())) &&
+    !!str.initialState.trim() && str.steps.filter(s => s.trim()).length >= 2;
   items.push({
-    key: 'stepsToReproduce', label: 'Steps to reproduce — numbered, concrete, from initial state',
-    passed: strOk, message: strOk ? '' : 'Initial state, at least 2 steps, and reproducibility rate are required.',
+    key: 'preconditions', label: 'Preconditions & steps — hardware, preconditions, initial state, ≥2 steps',
+    passed: preOk, message: preOk ? '' : 'Hardware config, preconditions, initial state, and at least 2 steps are required.',
   });
 
   const ea = data.expectedActual;
@@ -56,14 +44,6 @@ function clientChecklist(data: SQABugData): ChecklistItem[] {
     passed: eaOk, message: eaOk ? '' : 'Both expected and actual are required and must differ.',
   });
 
-  const imp = data.impact;
-  const impOk = !!imp.userWorkflowImpact.trim() && !!imp.estimatedOccurrence &&
-    (!!(imp.workaroundPracticality) || !!imp.workaroundDescription.trim());
-  items.push({
-    key: 'impact', label: 'Impact — user/workflow effect, workaround, frequency',
-    passed: impOk, message: impOk ? '' : 'User impact, workaround, and occurrence frequency are required.',
-  });
-
   const ev = data.evidence;
   const evOk = !!(ev.screenshotReferences || ev.videoReferences || ev.logDetails || ev.testCaseIds);
   items.push({
@@ -72,24 +52,57 @@ function clientChecklist(data: SQABugData): ChecklistItem[] {
   });
 
   const dup = data.duplicateSearch;
-  const dupOk = dup.searchPerformed && !!dup.outcome && dup.outcome !== 'open_match';
+  const dupOk = !!data.projectKey && dup.searchPerformed && !!dup.outcome && dup.outcome !== 'open_match';
   items.push({
-    key: 'duplicateSearch', label: 'Duplicate search — performed and outcome resolved',
+    key: 'duplicateSearch', label: 'Duplicate search — project selected, search performed, outcome resolved',
     passed: dupOk,
-    message: !dup.searchPerformed ? 'Duplicate search not performed.' :
+    message: !data.projectKey ? 'Select a Jira project.' :
+      !dup.searchPerformed ? 'Duplicate search not performed.' :
       !dup.outcome ? 'Select a duplicate search outcome.' :
       dup.outcome === 'open_match' ? 'Open duplicate found — add evidence to the existing bug.' : '',
   });
 
-  const cl = data.classification;
-  const clOk = !(cl.impactCategory === 'Blocker' && !cl.priorityRationale.trim());
-  items.push({
-    key: 'classification', label: 'Classification — Blocker requires rationale',
-    passed: clOk, message: clOk ? '' : 'Blocker impact category requires a priority rationale.',
-  });
-
   return items;
 }
+
+// ── Overview helpers ──────────────────────────────────────────────────────────
+
+const fieldStyle: React.CSSProperties = {
+  display: 'grid', gridTemplateColumns: '160px 1fr', gap: '6px',
+  padding: '6px 0', borderBottom: '1px solid #F4F5F7', alignItems: 'start',
+};
+
+function OField({ label, value, mono = false }: { label: string; value?: string; mono?: boolean }) {
+  if (!value?.trim()) return null;
+  return (
+    <div style={fieldStyle}>
+      <span style={{ fontSize: '11px', color: '#5E6C84', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em', paddingTop: '2px' }}>
+        {label}
+      </span>
+      <span style={{ fontSize: '13px', color: '#172B4D', whiteSpace: 'pre-wrap', fontFamily: mono ? 'monospace' : 'inherit' }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function OSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: '2px' }}>
+      <div style={{
+        background: '#F4F5F7', padding: '5px 14px',
+        fontWeight: 700, fontSize: '11px', color: '#344563',
+        letterSpacing: '0.06em', textTransform: 'uppercase',
+        borderBottom: '1px solid #DFE1E6',
+      }}>
+        {title}
+      </div>
+      <div style={{ padding: '2px 14px 6px' }}>{children}</div>
+    </div>
+  );
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 const StepChecklistReview: React.FC<Props> = ({ bugData, isSubmitting, onSubmit, onValidate }) => {
   const items = useMemo(() => clientChecklist(bugData), [bugData]);
@@ -97,9 +110,32 @@ const StepChecklistReview: React.FC<Props> = ({ bugData, isSubmitting, onSubmit,
 
   React.useEffect(() => { onValidate(allPass); }, [allPass]);
 
-  const assembled = bugData.summary.category
-    ? `[${bugData.summary.category}]-[${bugData.summary.subCategory}]: ${bugData.summary.problemStatement} ${bugData.summary.conditionClause}`.trim()
+  const s = bugData.summary;
+  const assembled = s.category
+    ? `[${s.category}]-[${s.subCategory}]: ${s.problemStatement}${s.conditionClause ? ' ' + s.conditionClause : ''}`.trim()
     : '(summary not yet built)';
+
+  const pre = bugData.preconditions;
+  const str = bugData.stepsToReproduce;
+  const ea = bugData.expectedActual;
+  const ev = bugData.evidence;
+  const tr = bugData.traceability;
+  const dup = bugData.duplicateSearch;
+
+  const preconditionsText = pre.noPreconditions
+    ? `No special preconditions — ${pre.noPreconditionsExplanation}`
+    : pre.preconditions;
+
+  const stepsText = str.steps
+    .map((step, i) => step.trim() ? `${i + 1}. ${step.trim()}` : null)
+    .filter(Boolean)
+    .join('\n');
+
+  const dupOutcomeLabel =
+    dup.outcome === 'none' ? '✅ No match — proceeding with new bug' :
+    dup.outcome === 'closed_match' ? `🔄 Re-occurrence of closed bug${dup.linkedIssueKeys.length ? ` (${dup.linkedIssueKeys.join(', ')})` : ''}` :
+    dup.outcome === 'open_match' ? `🚫 Open duplicate — ${dup.linkedIssueKeys.join(', ')}` :
+    '—';
 
   return (
     <div>
@@ -108,10 +144,11 @@ const StepChecklistReview: React.FC<Props> = ({ bugData, isSubmitting, onSubmit,
         All checklist items must pass before the bug can be created.
       </p>
 
-      {/* Checklist */}
+      {/* ── Checklist ── */}
       <div style={{ border: '1px solid #DFE1E6', borderRadius: '4px', overflow: 'hidden', marginBottom: '20px' }}>
         <div style={{ background: '#F4F5F7', padding: '10px 16px', fontWeight: 700, fontSize: '14px', borderBottom: '2px solid #DFE1E6' }}>
-          SQA Pre-Submit Checklist — {allPass
+          SQA Pre-Submit Checklist —{' '}
+          {allPass
             ? <span style={{ color: '#006644' }}>PASSED ✓</span>
             : <span style={{ color: '#DE350B' }}>FAILED ✗ ({items.filter(i => !i.passed).length} items)</span>
           }
@@ -135,11 +172,55 @@ const StepChecklistReview: React.FC<Props> = ({ bugData, isSubmitting, onSubmit,
         ))}
       </div>
 
-      {/* Summary preview */}
-      <div style={{ background: '#F4F5F7', border: '1px solid #DFE1E6', borderRadius: '4px', padding: '12px 16px', marginBottom: '20px' }}>
-        <p style={{ margin: '0 0 6px', fontWeight: 700, fontSize: '13px', color: '#5E6C84' }}>JIRA SUMMARY PREVIEW</p>
-        <p style={{ margin: 0, fontSize: '14px', color: '#172B4D', fontWeight: 500 }}>{assembled}</p>
-        <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#5E6C84' }}>Project: <strong>{bugData.projectKey || '—'}</strong></p>
+      {/* ── Bug overview ── */}
+      <div style={{ border: '1px solid #DFE1E6', borderRadius: '4px', overflow: 'hidden', marginBottom: '20px' }}>
+        <div style={{ background: '#0052CC', padding: '10px 16px', fontWeight: 700, fontSize: '13px', color: '#fff' }}>
+          Bug Report Overview
+        </div>
+
+        <OSection title="Project">
+          <OField label="Jira Project" value={bugData.projectKey || '—'} />
+        </OSection>
+
+        <OSection title="Summary">
+          <OField label="Jira Title" value={assembled} />
+          <OField label="Category" value={s.category ? `${s.category} / ${s.subCategory}` : undefined} />
+          <OField label="Problem" value={s.problemStatement} />
+          <OField label="Condition" value={s.conditionClause} />
+        </OSection>
+
+        <OSection title="Preconditions & Steps">
+          <OField label="Hardware" value={bugData.environment.hardwareConfig} />
+          <OField label="Preconditions" value={preconditionsText} />
+          <OField label="Initial State" value={str.initialState} />
+          <OField label="Steps" value={stepsText} mono />
+        </OSection>
+
+        <OSection title="Expected vs Actual">
+          <OField label="Expected" value={ea.expectedBehavior} />
+          <OField label="Actual" value={ea.actualBehavior} />
+          <OField label="Notes" value={ea.notes} />
+        </OSection>
+
+        <OSection title="Evidence">
+          <OField label="Screenshots" value={ev.screenshotReferences} />
+          <OField label="Videos" value={ev.videoReferences} />
+          <OField label="Logs" value={ev.logDetails} />
+          <OField label="Test Case IDs" value={ev.testCaseIds} />
+        </OSection>
+
+        {(tr.requirementIds || tr.riskItemIds || tr.relatedJiraKeys) && (
+          <OSection title="Traceability">
+            <OField label="Requirements" value={tr.requirementIds} />
+            <OField label="Risk Items" value={tr.riskItemIds} />
+            <OField label="Related Issues" value={tr.relatedJiraKeys} />
+          </OSection>
+        )}
+
+        <OSection title="Duplicate Search">
+          <OField label="Outcome" value={dupOutcomeLabel} />
+          <OField label="Search Query" value={dup.searchQuery} mono />
+        </OSection>
       </div>
 
       {!allPass && (

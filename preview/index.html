@@ -627,7 +627,33 @@ function StepDupSearch({ d, set }) {
   );
 }
 
-// ─── Step 8 – Review & Submit ───────────────────────────────────────────────
+// ─── Step 7 – Review & Submit ───────────────────────────────────────────────
+
+function OField({label, value, mono=false}) {
+  if (!value || !String(value).trim()) return null;
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"160px 1fr",gap:6,padding:"5px 0",
+      borderBottom:"1px solid var(--gray-50)",alignItems:"start"}}>
+      <span style={{fontSize:11,color:"var(--gray-500)",fontWeight:700,
+        textTransform:"uppercase",letterSpacing:"0.03em",paddingTop:2}}>{label}</span>
+      <span style={{fontSize:13,color:"var(--gray-900)",whiteSpace:"pre-wrap",
+        fontFamily:mono?"monospace":"inherit"}}>{value}</span>
+    </div>
+  );
+}
+
+function OSection({title, children}) {
+  return (
+    <div style={{marginBottom:2}}>
+      <div style={{background:"var(--gray-50)",padding:"5px 14px",fontWeight:700,fontSize:11,
+        color:"var(--gray-700)",letterSpacing:"0.06em",textTransform:"uppercase",
+        borderBottom:"1px solid var(--gray-100)"}}>
+        {title}
+      </div>
+      <div style={{padding:"2px 14px 6px"}}>{children}</div>
+    </div>
+  );
+}
 
 function StepReview({ d, onSubmit, submitting }) {
   const checks = [
@@ -639,26 +665,40 @@ function StepReview({ d, onSubmit, submitting }) {
      ok:!!d.expectedBehavior&&!!d.actualBehavior&&d.expectedBehavior.toLowerCase()!==d.actualBehavior.toLowerCase()},
     {label:"Evidence — at least one reference",
      ok:!!(d.screenshots||d.videos||d.logs||d.testIds)},
-    {label:"Duplicate search — performed and outcome resolved",
-     ok:d.searchDone&&!!d.dupOutcome&&d.dupOutcome!=="open_match"},
+    {label:"Duplicate search — project selected, search performed, outcome resolved",
+     ok:!!d.projectKey&&d.searchDone&&!!d.dupOutcome&&d.dupOutcome!=="open_match"},
   ];
   const pass = checks.every(c=>c.ok);
+
   const assembled = d.category&&d.subCategory&&d.problemStatement
     ? `[${d.category}]-[${d.subCategory}]: ${d.problemStatement}${d.conditionClause?" "+d.conditionClause:""}`
     : "(summary not yet built)";
+
+  const preconditionsText = d.noPreconditions
+    ? `No special preconditions — ${d.noPreconditionsExp}`
+    : d.preconditions;
+
+  const stepsText = (d.steps||[])
+    .map((s,i)=>s.trim()?`${i+1}. ${s.trim()}`:null)
+    .filter(Boolean).join("\n");
+
+  const dupLabel =
+    d.dupOutcome==="none"    ? "✅ No match — proceeding with new bug" :
+    d.dupOutcome==="closed_match" ? `🔄 Re-occurrence of closed bug${d.dupLinked?.length?" ("+d.dupLinked.join(", ")+")":""}` :
+    d.dupOutcome==="open_match"   ? `🚫 Open duplicate — ${(d.dupLinked||[]).join(", ")}` : "—";
+
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>Review & Submit — SW Project</h3>
-      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>All items must pass before the bug is created in <strong>noahmed.atlassian.net / SW</strong>.</p>
-      <div style={{background:pass?"var(--green-light)":"var(--red-light)",
-        border:`2px solid ${pass?"var(--green)":"var(--red)"}`,borderRadius:6,padding:"10px 14px",marginBottom:14}}>
-        <div style={{fontWeight:800,fontSize:15,color:pass?"#006644":"var(--red-dark)"}}>
-          {pass?"✓ SQA GATE: PASSED — Ready to create in SW":`✗ SQA GATE: FAILED — ${checks.filter(c=>!c.ok).length} item(s) incomplete`}
-        </div>
-      </div>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>Review & Submit</h3>
+      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>All items must pass before the bug is created in <strong>noahmed.atlassian.net</strong>.</p>
+
+      {/* Checklist */}
       <div style={{border:"1px solid var(--gray-100)",borderRadius:4,overflow:"hidden",marginBottom:16}}>
         <div style={{background:"var(--gray-50)",padding:"8px 14px",fontWeight:700,fontSize:13,borderBottom:"2px solid var(--gray-100)"}}>
-          SQA Pre-Submit Checklist
+          SQA Pre-Submit Checklist —{" "}
+          {pass
+            ? <span style={{color:"var(--green)"}}>PASSED ✓</span>
+            : <span style={{color:"var(--red-dark)"}}>FAILED ✗ ({checks.filter(c=>!c.ok).length} items)</span>}
         </div>
         {checks.map((c,i)=>(
           <div key={i} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"8px 14px",
@@ -668,16 +708,62 @@ function StepReview({ d, onSubmit, submitting }) {
           </div>
         ))}
       </div>
-      <div style={{background:"var(--gray-50)",border:"1px solid var(--gray-100)",borderRadius:4,padding:"10px 14px",marginBottom:16}}>
-        <p style={{margin:"0 0 4px",fontWeight:700,fontSize:11,color:"var(--gray-500)"}}>JIRA ISSUE PREVIEW — noahmed.atlassian.net / SW</p>
-        <p style={{margin:0,fontSize:14,color:"var(--gray-900)",fontWeight:500}}>{assembled}</p>
-        <p style={{margin:"6px 0 0",fontSize:12,color:"var(--gray-500)"}}>Project: <strong>SW</strong> · Type: Bug · Gate: {pass?"✓ PASSED":"✗ FAILED"}</p>
+
+      {/* Bug Overview */}
+      <div style={{border:"1px solid var(--gray-100)",borderRadius:4,overflow:"hidden",marginBottom:16}}>
+        <div style={{background:"#0052CC",padding:"10px 16px",fontWeight:700,fontSize:13,color:"#fff"}}>
+          Bug Report Overview
+        </div>
+
+        <OSection title="Project">
+          <OField label="Jira Project" value={d.projectKey||"—"} />
+        </OSection>
+
+        <OSection title="Summary">
+          <OField label="Jira Title" value={assembled} />
+          <OField label="Category" value={d.category&&d.subCategory?`${d.category} / ${d.subCategory}`:undefined} />
+          <OField label="Problem" value={d.problemStatement} />
+          <OField label="Condition" value={d.conditionClause} />
+        </OSection>
+
+        <OSection title="Preconditions & Steps">
+          <OField label="Hardware" value={d.hardwareConfig} />
+          <OField label="Preconditions" value={preconditionsText} />
+          <OField label="Initial State" value={d.initialState} />
+          <OField label="Steps" value={stepsText} mono={true} />
+        </OSection>
+
+        <OSection title="Expected vs Actual">
+          <OField label="Expected" value={d.expectedBehavior} />
+          <OField label="Actual" value={d.actualBehavior} />
+          <OField label="Notes" value={d.notes} />
+        </OSection>
+
+        <OSection title="Evidence">
+          <OField label="Screenshots" value={d.screenshots} />
+          <OField label="Videos" value={d.videos} />
+          <OField label="Logs" value={d.logs} />
+          <OField label="Test Case IDs" value={d.testIds} />
+        </OSection>
+
+        {(d.reqIds||d.riskIds||d.relatedKeys) && (
+          <OSection title="Traceability">
+            <OField label="Requirements" value={d.reqIds} />
+            <OField label="Risk Items" value={d.riskIds} />
+            <OField label="Related Issues" value={d.relatedKeys} />
+          </OSection>
+        )}
+
+        <OSection title="Duplicate Search">
+          <OField label="Outcome" value={dupLabel} />
+        </OSection>
       </div>
+
       <div style={{textAlign:"center"}}>
         <button onClick={onSubmit} disabled={!pass||submitting}
           style={{padding:"12px 32px",fontSize:15,fontWeight:700,border:"none",
             background:pass?"var(--green)":"var(--gray-300)",color:"#fff",borderRadius:4,cursor:pass?"pointer":"not-allowed"}}>
-          {submitting?"⏳ Creating SW bug…":"✓ Create SQA Bug in SW"}
+          {submitting?"⏳ Creating bug…":"✓ Create SQA Bug in Jira"}
         </button>
       </div>
     </div>
