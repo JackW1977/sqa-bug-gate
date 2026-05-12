@@ -52,7 +52,7 @@ export async function rephraseWithGlean({ text, fieldContext }: RephrasePayload)
 
   try {
     token = (await storageGetSecret('gleanToken')) ?? process.env.GLEAN_TOKEN;
-    baseUrl = await storageGet<string>('gleanBaseUrl');
+    baseUrl = (await storageGet<string>('gleanBaseUrl')) ?? process.env.GLEAN_BASE_URL;
   } catch {
     return { success: false, error: 'Could not read Glean credentials from storage.' };
   }
@@ -60,7 +60,10 @@ export async function rephraseWithGlean({ text, fieldContext }: RephrasePayload)
   if (!token || !baseUrl) {
     return {
       success: false,
-      error: 'Glean is not configured. Add your Glean API token and base URL in the admin settings.',
+      error:
+        'Glean is not configured. ' +
+        'Add GLEAN_TOKEN and GLEAN_BASE_URL to your .env file, ' +
+        'or set them in Settings → AI Configuration.',
     };
   }
 

@@ -80,8 +80,15 @@ export const DEFAULT_CONFIG: AppConfig = {
 
 export async function getAppConfig(): Promise<AppConfig> {
   const stored = await storageGet<AppConfig>(CONFIG_STORAGE_KEY);
-  if (!stored) return DEFAULT_CONFIG;
-  return { ...DEFAULT_CONFIG, ...stored };
+  const base = { ...DEFAULT_CONFIG, ...(stored ?? {}) };
+  // Seed Glean config from .env if not yet saved via UI
+  if (!base.glean?.baseUrl && process.env.GLEAN_BASE_URL) {
+    base.glean = {
+      enabled: !!process.env.GLEAN_TOKEN,
+      baseUrl: process.env.GLEAN_BASE_URL,
+    };
+  }
+  return base;
 }
 
 export async function saveAppConfig(config: Partial<AppConfig>): Promise<AppConfig> {
