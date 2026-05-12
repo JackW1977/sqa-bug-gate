@@ -3,7 +3,7 @@ import { createBug, getGateState } from './handlers/bugHandler';
 import { searchDuplicates, saveDuplicateOutcome } from './handlers/searchHandler';
 import { getChecklistStatus, validateChecklist } from './handlers/checklistHandler';
 import { getConfig, updateConfig, listProjects, getIssueUrl, listVersions, listComponents, listSprints } from './handlers/configHandler';
-import { rephraseWithGlean } from './handlers/gleanHandler';
+import { rephraseWithGlean, setGleanToken, getGleanTokenStatus } from './handlers/gleanHandler';
 import { getMetrics } from './utils/metrics';
 import { handleWorkflowValidation } from './handlers/workflowValidator';
 
@@ -73,6 +73,15 @@ resolver.define('listSprints', async ({ payload }) => {
 // Glean AI rephrase
 resolver.define('rephraseWithGlean', async ({ payload }) => {
   return rephraseWithGlean(payload as Parameters<typeof rephraseWithGlean>[0]);
+});
+
+// Glean token management (admin only)
+resolver.define('setGleanToken', async ({ payload }) => {
+  return setGleanToken(payload as Parameters<typeof setGleanToken>[0]);
+});
+
+resolver.define('getGleanTokenStatus', async () => {
+  return getGleanTokenStatus();
 });
 
 // Metrics

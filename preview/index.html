@@ -163,6 +163,8 @@ const INITIAL = {
 
   // Glean AI
   gleanEnabled: true,
+  gleanBaseUrl: "https://noahmed-be.glean.com",
+  gleanTokenSet: true,
 };
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
@@ -918,6 +920,208 @@ function PanelPreview({ issueKey, scenario }) {
   );
 }
 
+// ─── Config page ─────────────────────────────────────────────────────────────
+
+function Toggle({ checked, onChange }) {
+  return (
+    <div onClick={()=>onChange(!checked)} style={{display:"inline-flex",alignItems:"center",gap:8,cursor:"pointer"}}>
+      <div style={{width:40,height:22,borderRadius:11,position:"relative",
+        background:checked?"#0052CC":"var(--gray-100)",transition:"background 0.15s"}}>
+        <div style={{position:"absolute",top:3,left:checked?21:3,width:16,height:16,
+          borderRadius:"50%",background:"#fff",boxShadow:"0 1px 3px rgba(0,0,0,0.2)",
+          transition:"left 0.15s"}} />
+      </div>
+      <span style={{fontSize:13,fontWeight:600,color:checked?"#0052CC":"var(--gray-500)"}}>
+        {checked?"Enabled":"Disabled"}
+      </span>
+    </div>
+  );
+}
+
+function ConfigPage({ d, set }) {
+  const [saving, setSaving] = React.useState(false);
+  const [saveMsg, setSaveMsg] = React.useState(null);
+  const [showToken, setShowToken] = React.useState(!d.gleanTokenSet);
+  const [tokenVal, setTokenVal] = React.useState("");
+
+  const sCard = {background:"#fff",border:"1px solid var(--gray-100)",borderRadius:4,marginBottom:20,overflow:"hidden"};
+  const sHead = (bg="#F4F5F7",color="#344563",border="var(--gray-100)") => ({
+    background:bg,padding:"10px 20px",fontWeight:700,fontSize:11,color,
+    letterSpacing:"0.06em",textTransform:"uppercase",borderBottom:`2px solid ${border}`,
+  });
+  const sBody = {padding:20};
+  const fRow = {display:"grid",gridTemplateColumns:"200px 1fr",gap:12,alignItems:"start",marginBottom:16};
+  const labelStyle = (hint) => (
+    <div>
+      <div style={{fontWeight:600,fontSize:13,color:"var(--gray-900)"}}></div>
+      {hint&&<div style={{fontSize:11,color:"var(--gray-500)",marginTop:2}}>{hint}</div>}
+    </div>
+  );
+
+  function save() {
+    setSaving(true);
+    setTimeout(()=>{
+      if(showToken&&tokenVal.trim()) set({gleanTokenSet:true});
+      setSaving(false);
+      setSaveMsg({ok:true,msg:"Settings saved successfully."});
+      setTimeout(()=>setSaveMsg(null),3000);
+    }, 900);
+  }
+
+  const SaveBtn = ({size=14}) => (
+    <button onClick={save} disabled={saving}
+      style={{padding:size===14?"10px 24px":"12px 32px",background:saving?"var(--gray-300)":"#0052CC",
+        color:"#fff",border:"none",borderRadius:4,fontSize:size,fontWeight:700,cursor:saving?"not-allowed":"pointer"}}>
+      {saving?"Saving…":"Save Changes"}
+    </button>
+  );
+
+  return (
+    <div style={{maxWidth:860,margin:"0 auto",padding:"24px 16px",fontFamily:"inherit"}}>
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
+        <div>
+          <h2 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>⚙ SQA Bug Gate — Settings</h2>
+          <p style={{margin:0,fontSize:13,color:"var(--gray-500)"}}>Configure gate behaviour, governed projects, and AI integrations.</p>
+        </div>
+        <SaveBtn />
+      </div>
+
+      {saveMsg&&(
+        <div style={{padding:"10px 16px",marginBottom:20,borderRadius:4,fontSize:13,fontWeight:500,
+          background:saveMsg.ok?"#E3FCEF":"#FFEBE6",
+          border:`1px solid ${saveMsg.ok?"#00875A":"#DE350B"}`,
+          color:saveMsg.ok?"#006644":"#BF2600"}}>
+          {saveMsg.ok?"✓ ":"⚠ "}{saveMsg.msg}
+        </div>
+      )}
+
+      {/* Section 1: Jira Settings */}
+      <div style={sCard}>
+        <div style={sHead()}>Jira Settings</div>
+        <div style={sBody}>
+          {[
+            {label:"Jira Site URL",hint:"Your Atlassian site URL",val:CONFIG.siteUrl,key:"siteUrl",ph:"https://company.atlassian.net"},
+            {label:"Governed Projects",hint:"Comma-separated project keys",val:"SW",key:"projects",ph:"SW, HW, FW"},
+            {label:"Governed Issue Types",hint:"Comma-separated issue types",val:"Bug",key:"issueTypes",ph:"Bug"},
+            {label:"Gated Statuses",hint:"Statuses that trigger the quality gate",val:"Ready for Triage, Ready for Dev, Triage",key:"statuses",ph:"Ready for Triage, Ready for Dev"},
+          ].map(f=>(
+            <div key={f.key} style={fRow}>
+              <div>
+                <div style={{fontWeight:600,fontSize:13,color:"var(--gray-900)"}}>{f.label}</div>
+                <div style={{fontSize:11,color:"var(--gray-500)",marginTop:2}}>{f.hint}</div>
+              </div>
+              <input defaultValue={f.val} placeholder={f.ph} style={{...inp,boxSizing:"border-box"}} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Section 2: AI — Glean */}
+      <div style={sCard}>
+        <div style={sHead("#EAE6FF","#403294","#C0B6F2")}>✨ AI Configuration — Glean</div>
+        <div style={sBody}>
+
+          {/* Enable toggle */}
+          <div style={{...fRow,alignItems:"center"}}>
+            <div>
+              <div style={{fontWeight:600,fontSize:13,color:"var(--gray-900)"}}>Enable Glean Rephrase</div>
+              <div style={{fontSize:11,color:"var(--gray-500)",marginTop:2}}>Show ✨ Rephrase with Glean on all text fields</div>
+            </div>
+            <Toggle checked={d.gleanEnabled} onChange={v=>set({gleanEnabled:v})} />
+          </div>
+
+          {/* Base URL */}
+          <div style={fRow}>
+            <div>
+              <div style={{fontWeight:600,fontSize:13,color:"var(--gray-900)"}}>Base URL</div>
+              <div style={{fontSize:11,color:"var(--gray-500)",marginTop:2}}>Your Glean backend URL</div>
+            </div>
+            <input value={d.gleanBaseUrl||""} placeholder="https://company-be.glean.com"
+              onChange={e=>set({gleanBaseUrl:e.target.value})}
+              style={{...inp,boxSizing:"border-box",borderColor:d.gleanEnabled?"#C0B6F2":"var(--gray-100)"}}
+              disabled={!d.gleanEnabled} />
+          </div>
+
+          {/* API Token */}
+          <div style={fRow}>
+            <div>
+              <div style={{fontWeight:600,fontSize:13,color:"var(--gray-900)"}}>API Token</div>
+              <div style={{fontSize:11,color:"var(--gray-500)",marginTop:2}}>Stored encrypted in Forge secret storage</div>
+            </div>
+            <div>
+              {d.gleanTokenSet&&!showToken ? (
+                <div style={{display:"flex",alignItems:"center",gap:12}}>
+                  <span style={{fontSize:13,color:"#006644",fontWeight:600,background:"#E3FCEF",
+                    padding:"6px 12px",borderRadius:4,border:"1px solid #ABF5D1"}}>✓ Token configured</span>
+                  <button onClick={()=>setShowToken(true)}
+                    style={{padding:"6px 14px",background:"var(--gray-50)",color:"var(--gray-700)",
+                      border:"1px solid var(--gray-100)",borderRadius:4,fontSize:13,cursor:"pointer"}}>
+                    Replace Token
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <input type="password" value={tokenVal} placeholder="Paste your Glean API token…"
+                    onChange={e=>setTokenVal(e.target.value)}
+                    style={{...inp,boxSizing:"border-box",borderColor:"#C0B6F2"}} />
+                  <p style={{margin:"4px 0 0",fontSize:11,color:"var(--gray-500)"}}>
+                    Token is encrypted and stored in Forge secret storage. It is never sent to the browser.
+                  </p>
+                  {d.gleanTokenSet&&(
+                    <button onClick={()=>{setShowToken(false);setTokenVal("");}}
+                      style={{marginTop:6,padding:"4px 10px",background:"transparent",
+                        border:"none",color:"var(--gray-500)",fontSize:12,cursor:"pointer"}}>
+                      ← Cancel
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Info box */}
+          <div style={{background:"#EAE6FF",border:"1px solid #C0B6F2",borderRadius:4,padding:"12px 16px",fontSize:13,color:"#403294"}}>
+            <strong>How it works:</strong> When enabled, a purple <strong>✨ Rephrase with Glean</strong> button
+            appears below every free-text field in the wizard. The reporter can Accept or Discard the AI suggestion.
+            <div style={{marginTop:8,fontSize:12,color:"#5243AA"}}>
+              Glean API endpoint: <code style={{background:"#F3F0FF",padding:"1px 4px",borderRadius:3}}>
+                {d.gleanBaseUrl||"https://company-be.glean.com"}/api/v1/chat
+              </code>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 3: Categories */}
+      <div style={sCard}>
+        <div style={sHead()}>Bug Categories</div>
+        <div style={sBody}>
+          <p style={{margin:"0 0 12px",fontSize:13,color:"var(--gray-500)"}}>
+            {CATEGORIES.length} categories configured.
+          </p>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+            {CATEGORIES.map(cat=>(
+              <div key={cat.value} style={{background:"var(--gray-50)",border:"1px solid var(--gray-100)",
+                borderRadius:4,padding:"8px 12px",fontSize:13}}>
+                <div style={{fontWeight:600,color:"var(--gray-900)",marginBottom:4}}>{cat.label}</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                  {cat.subs.map(s=>(
+                    <span key={s} style={{background:"#DEEBFF",color:"#0052CC",borderRadius:3,
+                      padding:"1px 6px",fontSize:11}}>{s}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{textAlign:"center",paddingBottom:24}}><SaveBtn size={15} /></div>
+    </div>
+  );
+}
+
 // ─── App shell ────────────────────────────────────────────────────────────────
 
 function App() {
@@ -978,12 +1182,16 @@ function App() {
         <button onClick={()=>{setView("wizard");setSubmitted(false);}} style={navBtn(view==="wizard","#0065FF")}>Wizard</button>
         <button onClick={()=>setView("panel_fail")} style={navBtn(view==="panel_fail","#0065FF")}>Panel — FAILED</button>
         <button onClick={()=>setView("panel_pass")} style={navBtn(view==="panel_pass","#0065FF")}>Panel — PASSED</button>
+        <button onClick={()=>setView("config")} style={{...navBtn(view==="config","#0065FF"),marginLeft:8}}>⚙ Config</button>
         <button onClick={()=>set({gleanEnabled:!d.gleanEnabled})}
-          style={{...navBtn(d.gleanEnabled,"#5243AA"),marginLeft:8}}
+          style={{...navBtn(d.gleanEnabled,"#5243AA"),marginLeft:4}}
           title="Toggle Glean AI rephrase buttons on all text fields">
           ✨ Glean: {d.gleanEnabled?"ON":"OFF"}
         </button>
       </div>
+
+      {/* Config page */}
+      {view==="config" && <ConfigPage d={d} set={set} />}
 
       {/* Debug bar */}
       {view==="wizard" && <DebugBar step={step} totalSteps={WIZARD_STEPS.length} />}

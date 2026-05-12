@@ -1,5 +1,30 @@
 import { storage } from '@forge/api';
 
+// ── Token management ──────────────────────────────────────────────────────────
+
+export async function setGleanToken(
+  payload: { token: string; baseUrl: string },
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await storage.setSecret('gleanToken', payload.token.trim());
+    await storage.set('gleanBaseUrl', payload.baseUrl.trim());
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: String(e) };
+  }
+}
+
+export async function getGleanTokenStatus(): Promise<{ tokenConfigured: boolean }> {
+  try {
+    const token = await storage.getSecret('gleanToken');
+    return { tokenConfigured: !!token };
+  } catch {
+    return { tokenConfigured: false };
+  }
+}
+
+// ── Rephrase ──────────────────────────────────────────────────────────────────
+
 interface RephrasePayload {
   text: string;
   fieldContext: string;

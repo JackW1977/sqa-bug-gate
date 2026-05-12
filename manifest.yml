@@ -7,6 +7,13 @@ modules:
       title: New SQA Bug
       description: Guided wizard for creating SQA-quality bug reports
 
+  jira:adminPage:
+    - key: sqa-admin-config
+      resource: wizard
+      resolver:
+        function: main-resolver
+      title: SQA Bug Gate — Settings
+
   jira:issuePanel:
     - key: sqa-issue-panel
       resource: panel

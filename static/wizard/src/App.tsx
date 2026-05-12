@@ -1,17 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { invoke } from '@forge/bridge';
+import { invoke, view } from '@forge/bridge';
 import WizardContainer from './components/WizardContainer';
+import AdminConfig from './components/AdminConfig';
 import type { AppConfig } from './types';
 
 const App: React.FC = () => {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [projects, setProjects] = useState<Array<{ key: string; name: string }>>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
+        // Detect whether we're in the admin page or the wizard
+        const context = await view.getContext().catch(() => null);
+        const moduleKey = (context as { moduleKey?: string } | null)?.moduleKey ?? '';
+        setIsAdmin(moduleKey === 'sqa-admin-config');
+
         const [configRes, projectsRes] = await Promise.all([
           invoke<{ success: boolean; config?: AppConfig; error?: string }>('getConfig'),
           invoke<{ success: boolean; projects?: Array<{ key: string; name: string }>; error?: string }>('listProjects'),
@@ -24,7 +31,6 @@ const App: React.FC = () => {
         }
 
         if (projectsRes.success && projectsRes.projects) {
-          // Filter to governed projects if configured; fallback to full list
           const governed = configRes.config?.governedProjects ?? [];
           setProjects(
             governed.length > 0
@@ -54,6 +60,10 @@ const App: React.FC = () => {
         <strong>Error loading SQA Bug Gate:</strong> {error}
       </div>
     );
+  }
+
+  if (isAdmin) {
+    return <AdminConfig config={config} />;
   }
 
   return <WizardContainer config={config} projects={projects} />;
