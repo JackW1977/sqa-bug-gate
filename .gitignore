@@ -8,3 +8,10 @@ static/panel/build/
 *.local
 .env
 coverage/
+
+# Standalone app
+data/
+server/dist/
+client/dist/
+server/node_modules/
+client/node_modules/
