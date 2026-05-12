@@ -11,8 +11,7 @@ import StepProject from './steps/StepProject';
 import Step1Summary from './steps/Step1Summary';
 import Step2Preconditions from './steps/Step3Preconditions';
 import Step3ExpectedActual from './steps/Step5ExpectedActual';
-import Step6Impact from './steps/Step6Impact';
-import Step7Evidence from './steps/Step7Evidence';
+import Step4Evidence from './steps/Step7Evidence';
 import Step8Traceability from './steps/Step8Traceability';
 import Step9Classification from './steps/Step9Classification';
 import StepDuplicateSearch from './steps/StepDuplicateSearch';
@@ -123,8 +122,7 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
     summary:          <Step1Summary {...stepProps} />,
     preconditions:    <Step2Preconditions {...stepProps} />,
     expectedActual:   <Step3ExpectedActual {...stepProps} />,
-    impact:           <Step6Impact {...stepProps} />,
-    evidence:         <Step7Evidence {...stepProps} />,
+    evidence:         <Step4Evidence {...stepProps} />,
     traceability:     <Step8Traceability {...stepProps} />,
     classification:   <Step9Classification {...stepProps} />,
     duplicateSearch:  <StepDuplicateSearch {...stepProps} />,

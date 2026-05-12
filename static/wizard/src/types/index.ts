@@ -172,7 +172,6 @@ export type WizardStep =
   | 'summary'
   | 'preconditions'
   | 'expectedActual'
-  | 'impact'
   | 'evidence'
   | 'traceability'
   | 'classification'
@@ -190,7 +189,6 @@ export const WIZARD_STEPS: WizardStepMeta[] = [
   { id: 'summary', label: 'Summary' },
   { id: 'preconditions', label: 'Preconditions & Steps' },
   { id: 'expectedActual', label: 'Expected vs Actual' },
-  { id: 'impact', label: 'Impact' },
   { id: 'evidence', label: 'Evidence' },
   { id: 'traceability', label: 'Traceability', optional: true },
   { id: 'classification', label: 'Classification', optional: true },

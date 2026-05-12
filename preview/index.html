@@ -89,7 +89,7 @@ const MOCK_CLOSED = [
 
 const WIZARD_STEPS = [
   "Project", "Summary", "Preconditions & Steps",
-  "Expected vs Actual", "Impact",
+  "Expected vs Actual",
   "Evidence", "Traceability", "Classification",
   "Duplicate Search", "Review & Submit"
 ];
@@ -443,59 +443,12 @@ function StepExpAct({ d, set }) {
   );
 }
 
-// ─── Step 4 – Impact ──────────────────────────────────────────────────────────
-
-function StepImpact({ d, set }) {
-  return (
-    <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>4 — Impact (SQA View)</h3>
-      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
-        Describe impact in user/workflow terms to help triage understand urgency.
-      </p>
-      <Field label="User / Workflow Impact" required hint="Delays, interruptions, repeated steps, lost confidence.">
-        <textarea rows={4} value={d.userWorkflowImpact}
-          placeholder="e.g. Clinician cannot visualise scope during the navigation phase of every procedure. Full session restart required (~10 min delay). Observed in 3 of 3 phantom simulations on affected hardware."
-          onChange={e=>set({userWorkflowImpact:e.target.value})} style={{...inp,resize:"vertical"}} />
-      </Field>
-      <Field label="Safety Relevance" hint="Only if patient safety is evidently affected.">
-        <textarea rows={2} value={d.safetyRelevance}
-          placeholder="e.g. If undetected in clinical use, operator could proceed without scope visualisation."
-          onChange={e=>set({safetyRelevance:e.target.value})} style={{...inp,resize:"vertical"}} />
-      </Field>
-      <Field label="Workaround Description">
-        <textarea rows={2} value={d.workaroundDesc}
-          placeholder="e.g. Disconnect USB scope, wait 10s, reconnect. Restores feed in ~80% of attempts."
-          onChange={e=>set({workaroundDesc:e.target.value})} style={{...inp,resize:"vertical"}} />
-      </Field>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-        <Field label="Workaround Practicality" required>
-          <select value={d.workaroundPracticality} onChange={e=>set({workaroundPracticality:e.target.value})} style={inp}>
-            <option value="">— Select —</option>
-            <option value="trivial">Trivial (quick, no disruption)</option>
-            <option value="acceptable">Acceptable (minor effort)</option>
-            <option value="cumbersome">Cumbersome (significant effort)</option>
-            <option value="unrealistic">Unrealistic / No workaround</option>
-          </select>
-        </Field>
-        <Field label="Estimated Occurrence" required>
-          <select value={d.occurrence} onChange={e=>set({occurrence:e.target.value})} style={inp}>
-            <option value="">— Select —</option>
-            <option value="remote">Remote (edge case)</option>
-            <option value="occasional">Occasional (sometimes)</option>
-            <option value="frequent">Frequent (common path)</option>
-          </select>
-        </Field>
-      </div>
-    </div>
-  );
-}
-
-// ─── Step 5 – Evidence ────────────────────────────────────────────────────────
+// ─── Step 4 – Evidence ────────────────────────────────────────────────────────
 
 function StepEvidence({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>5 — Evidence & Attachments</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>4 — Evidence & Attachments</h3>
       <Banner type="info">
         ℹ️ Attach actual files to the SW Jira issue after creation. Reference file names/locations below.
       </Banner>
@@ -523,12 +476,12 @@ function StepEvidence({ d, set }) {
   );
 }
 
-// ─── Step 6 – Traceability ────────────────────────────────────────────────────
+// ─── Step 5 – Traceability ────────────────────────────────────────────────────
 
 function StepTrace({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>6 — Traceability Links</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>5 — Traceability Links</h3>
       <Banner type="info">All fields optional. Do not guess requirement IDs.</Banner>
       <Field label="Requirement ID(s)" hint="SW requirement IDs, e.g. SW-REQ-1042">
         <input type="text" value={d.reqIds} placeholder="SW-REQ-1042, SW-REQ-1053"
@@ -546,12 +499,12 @@ function StepTrace({ d, set }) {
   );
 }
 
-// ─── Step 7 – Classification ──────────────────────────────────────────────────
+// ─── Step 6 – Classification ──────────────────────────────────────────────────
 
 function StepClass({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>7 — Classification Suggestion</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>6 — Classification Suggestion</h3>
       <Banner type="warning">⚠️ SQA suggestion only — final severity/priority set by triage/product/engineering.</Banner>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
         <Field label="Type">
@@ -581,7 +534,7 @@ function StepClass({ d, set }) {
   );
 }
 
-// ─── Step 8 – Duplicate Search ───────────────────────────────────────────────
+// ─── Step 7 – Duplicate Search ───────────────────────────────────────────────
 
 function StepDupSearch({ d, set }) {
   const [searching, setSearching] = React.useState(false);
@@ -716,7 +669,7 @@ function StepDupSearch({ d, set }) {
   );
 }
 
-// ─── Step 9 – Review & Submit ───────────────────────────────────────────────
+// ─── Step 8 – Review & Submit ───────────────────────────────────────────────
 
 function StepReview({ d, onSubmit, submitting }) {
   const checks = [
@@ -728,8 +681,6 @@ function StepReview({ d, onSubmit, submitting }) {
      ok:!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2},
     {label:"Expected vs actual behavior — clearly differentiated",
      ok:!!d.expectedBehavior&&!!d.actualBehavior&&d.expectedBehavior.toLowerCase()!==d.actualBehavior.toLowerCase()},
-    {label:"Impact — user/workflow effect, workaround, frequency",
-     ok:!!d.userWorkflowImpact&&!!d.occurrence&&(!!d.workaroundPracticality||!!d.workaroundDesc)},
     {label:"Evidence — at least one reference",
      ok:!!(d.screenshots||d.videos||d.logs||d.testIds)},
     {label:"Duplicate search — performed and outcome resolved",
@@ -791,7 +742,6 @@ function PanelPreview({ issueKey, scenario }) {
         {label:"Preconditions — documented or explicitly none",ok:false,msg:"Preconditions required, or check 'No special preconditions' with explanation."},
         {label:"Steps to reproduce — numbered, concrete, from initial state",ok:true},
         {label:"Expected vs actual behavior — clearly differentiated",ok:false,msg:"Expected and actual must be different."},
-        {label:"Impact — user/workflow effect, workaround, frequency",ok:false,msg:"Estimated occurrence frequency is required."},
         {label:"Evidence — logs, screenshots, test IDs referenced",ok:true},
         {label:"Duplicate search — performed and outcome resolved",ok:false,msg:"Duplicate search has not been performed."},
         {label:"Classification — Blocker impact requires rationale",ok:true},
@@ -805,7 +755,6 @@ function PanelPreview({ issueKey, scenario }) {
         {label:"Preconditions — documented or explicitly none",ok:true},
         {label:"Steps to reproduce — numbered, concrete, from initial state",ok:true},
         {label:"Expected vs actual behavior — clearly differentiated",ok:true},
-        {label:"Impact — user/workflow effect, workaround, frequency",ok:true},
         {label:"Evidence — logs, screenshots, test IDs referenced",ok:true},
         {label:"Duplicate search — performed and outcome resolved",ok:true},
         {label:"Classification — Blocker impact requires rationale",ok:true},
@@ -876,7 +825,6 @@ function App() {
     !!d.category&&!!d.subCategory&&d.problemStatement.length>=10&&!!d.conditionClause,
     !!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions))&&!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2,
     !!d.expectedBehavior&&!!d.actualBehavior,
-    !!d.userWorkflowImpact&&!!d.occurrence,
     !!(d.screenshots||d.videos||d.logs||d.testIds),
     true, true, // traceability + classification optional
     d.searchDone&&!!d.dupOutcome,
@@ -898,7 +846,6 @@ function App() {
     <StepSummary d={d} set={set} />,
     <StepPreconditions d={d} set={set} />,
     <StepExpAct d={d} set={set} />,
-    <StepImpact d={d} set={set} />,
     <StepEvidence d={d} set={set} />,
     <StepTrace d={d} set={set} />,
     <StepClass d={d} set={set} />,
