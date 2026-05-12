@@ -96,6 +96,7 @@ const AdminConfig: React.FC<Props> = ({ config }) => {
   // ── General settings state
   const [siteUrl, setSiteUrl] = useState(config.jiraSiteUrl ?? '');
   const [governedProjects, setGovernedProjects] = useState(config.governedProjects.join(', '));
+  const [defaultProject, setDefaultProject] = useState(config.defaultProject ?? config.governedProjects[0] ?? '');
   const [gatedStatuses, setGatedStatuses] = useState(config.gatedStatuses.join(', '));
   const [governedIssueTypes, setGovernedIssueTypes] = useState(config.governedIssueTypes.join(', '));
 
@@ -121,9 +122,11 @@ const AdminConfig: React.FC<Props> = ({ config }) => {
     setSaveResult(null);
     try {
       // Save general + glean config
+      const parsedProjects = governedProjects.split(',').map((s) => s.trim()).filter(Boolean);
       const patch: Partial<AppConfig> = {
         jiraSiteUrl: siteUrl.trim(),
-        governedProjects: governedProjects.split(',').map((s) => s.trim()).filter(Boolean),
+        governedProjects: parsedProjects,
+        defaultProject: defaultProject.trim() || parsedProjects[0] || '',
         gatedStatuses: gatedStatuses.split(',').map((s) => s.trim()).filter(Boolean),
         governedIssueTypes: governedIssueTypes.split(',').map((s) => s.trim()).filter(Boolean),
         glean: { enabled: gleanEnabled, baseUrl: gleanBaseUrl.trim() },
@@ -205,6 +208,18 @@ const AdminConfig: React.FC<Props> = ({ config }) => {
             <FieldLabel hint="Comma-separated project keys">Governed Projects</FieldLabel>
             <input style={inp} value={governedProjects} onChange={(e) => setGovernedProjects(e.target.value)}
               placeholder="SW, HW, FW" />
+          </div>
+          <div style={fieldRow}>
+            <FieldLabel hint="Default project pre-selected in the bug wizard">Default Project</FieldLabel>
+            <select
+              style={{ ...inp, background: '#fff' }}
+              value={defaultProject}
+              onChange={(e) => setDefaultProject(e.target.value)}
+            >
+              {governedProjects.split(',').map((s) => s.trim()).filter(Boolean).map((key) => (
+                <option key={key} value={key}>{key}</option>
+              ))}
+            </select>
           </div>
           <div style={fieldRow}>
             <FieldLabel hint="Comma-separated issue types">Governed Issue Types</FieldLabel>

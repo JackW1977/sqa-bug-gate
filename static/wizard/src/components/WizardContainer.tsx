@@ -22,7 +22,10 @@ interface WizardContainerProps {
 
 const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [bugData, setBugData] = useState<SQABugData>(INITIAL_BUG_DATA);
+  const [bugData, setBugData] = useState<SQABugData>({
+    ...INITIAL_BUG_DATA,
+    projectKey: config.defaultProject ?? config.governedProjects[0] ?? '',
+  });
   const [stepValid, setStepValid] = useState<Record<number, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedKey, setSubmittedKey] = useState<string | null>(null);
@@ -99,7 +102,7 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
             color: '#344563', border: '1px solid #DFE1E6', borderRadius: '4px', fontSize: '14px', cursor: 'pointer',
           }}
           onClick={() => {
-            setBugData(INITIAL_BUG_DATA);
+            setBugData({ ...INITIAL_BUG_DATA, projectKey: config.defaultProject ?? config.governedProjects[0] ?? '' });
             setStepValid({});
             setCurrentIndex(0);
             setSubmittedKey(null);
@@ -121,7 +124,7 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
     expectedActual:   <Step3ExpectedActual {...stepProps} />,
     evidence:         <Step4Evidence {...stepProps} />,
     traceability:     <Step8Traceability {...stepProps} />,
-    duplicateSearch:  <StepDuplicateSearch {...stepProps} projects={projects} />,
+    duplicateSearch:  <StepDuplicateSearch {...stepProps} />,
     review:           <StepChecklistReview {...stepProps} isSubmitting={isSubmitting} onSubmit={handleSubmit} />,
   };
 

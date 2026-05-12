@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { invoke } from '@forge/bridge';
 import type { SQABugData, AppConfig, DuplicateSearchResult, DuplicateOutcome, SQADuplicateSearchData } from '../../types';
-import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
 
 interface Props {
@@ -20,19 +19,15 @@ interface SearchResponse {
   error?: string;
 }
 
-function isValid(projectKey: string, d: SQADuplicateSearchData): boolean {
-  if (!projectKey) return false;
+function isValid(d: SQADuplicateSearchData): boolean {
   if (!d.searchPerformed) return false;
   if (!d.outcome) return false;
   if (d.outcome === 'open_match') return false; // blocks creation
   return true;
 }
 
-const StepDuplicateSearch: React.FC<Props> = ({ bugData, onChange, onValidate, config, projects }) => {
+const StepDuplicateSearch: React.FC<Props> = ({ bugData, onChange, onValidate }) => {
   const d = bugData.duplicateSearch;
-  const governed = config.governedProjects.length > 0
-    ? projects.filter((p) => config.governedProjects.includes(p.key))
-    : projects;
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openResults, setOpenResults] = useState<DuplicateSearchResult[]>(d.results.filter(r => r.statusCategory !== 'done'));
@@ -46,8 +41,8 @@ const StepDuplicateSearch: React.FC<Props> = ({ bugData, onChange, onValidate, c
   const [outcome, setOutcome] = useState<DuplicateOutcome>(d.outcome);
 
   useEffect(() => {
-    onValidate(isValid(bugData.projectKey, d));
-  }, [bugData.projectKey, d]);
+    onValidate(isValid(d));
+  }, [d]);
 
   function updateDupData(patch: Partial<SQADuplicateSearchData>) {
     onChange({ duplicateSearch: { ...d, ...patch } });
@@ -94,31 +89,15 @@ const StepDuplicateSearch: React.FC<Props> = ({ bugData, onChange, onValidate, c
 
   return (
     <div>
-      {/* ── Project selector ───────────────────────────────────────────── */}
-      <FormField label="Jira Project" required>
-        <select
-          value={bugData.projectKey}
-          onChange={(e) => onChange({ projectKey: e.target.value })}
-          style={{ width: '100%', padding: '8px', border: '2px solid #DFE1E6', borderRadius: '4px', fontSize: '14px' }}
-        >
-          <option value="">— Select a project —</option>
-          {governed.map((p) => (
-            <option key={p.key} value={p.key}>{p.name} ({p.key})</option>
-          ))}
-        </select>
-      </FormField>
-      {bugData.projectKey && (
-        <p style={{ margin: '-8px 0 16px', color: '#006644', fontSize: '13px' }}>
-          ✓ Project <strong>{bugData.projectKey}</strong> is governed by the SQA Bug Gate.
-        </p>
-      )}
-
-      <div style={{ borderTop: '1px solid #DFE1E6', margin: '20px 0' }} />
-
       <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>Duplicate Search</h3>
-      <p style={{ margin: '0 0 16px', color: '#5E6C84', fontSize: '13px' }}>
+      <p style={{ margin: '0 0 4px', color: '#5E6C84', fontSize: '13px' }}>
         Search existing bugs before creating a new one. You must run the search and pick an outcome.
       </p>
+      {bugData.projectKey && (
+        <p style={{ margin: '0 0 16px', fontSize: '12px', color: '#006644' }}>
+          🔍 Searching project: <strong>{bugData.projectKey}</strong>
+        </p>
+      )}
 
       {error && <ValidationMessage>{error}</ValidationMessage>}
 

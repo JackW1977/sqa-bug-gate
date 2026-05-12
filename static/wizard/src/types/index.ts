@@ -161,6 +161,7 @@ export interface GleanConfig {
 export interface AppConfig {
   jiraSiteUrl: string;
   governedProjects: string[];
+  defaultProject?: string;
   governedIssueTypes: string[];
   gatedStatuses: string[];
   categories: CategoryConfig[];

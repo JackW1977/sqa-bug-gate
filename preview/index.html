@@ -31,6 +31,7 @@ const CONFIG = {
   jiraSiteUrl: "https://noahmed.atlassian.net",
   boardUrl: "https://noahmed.atlassian.net/jira/software/c/projects/SW/boards/49",
   governedProjects: ["SW"],
+  defaultProject: "SW",
   gatedStatuses: ["Ready for Triage", "Ready for Dev", "Triage"],
 };
 
@@ -587,26 +588,15 @@ function StepDupSearch({ d, set }) {
 
   return (
     <div>
-      {/* ── Project selector ── */}
-      <Field label="Jira Project" required>
-        <select value={d.projectKey} onChange={e=>set({projectKey:e.target.value})} style={inp}>
-          <option value="">— Select a project —</option>
-          <option value="SW">Noah Medical Platform (SW)</option>
-        </select>
-      </Field>
-      {d.projectKey === "SW" && (
-        <Banner type="success">
-          ✓ Project <strong>SW</strong> is governed by the SQA Bug Gate.
-          {" "}<a href={CONFIG.boardUrl} target="_blank">Open SW Board ↗</a>
-        </Banner>
-      )}
-
-      <div style={{borderTop:"1px solid var(--gray-100)",margin:"20px 0"}} />
-
       <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>6 — Duplicate Search</h3>
-      <p style={{margin:"0 0 10px",fontSize:13,color:"var(--gray-500)"}}>
+      <p style={{margin:"0 0 4px",fontSize:13,color:"var(--gray-500)"}}>
         Search existing bugs before creating a new one. You must run the search and pick an outcome.
       </p>
+      {d.projectKey && (
+        <p style={{margin:"0 0 16px",fontSize:12,color:"#006644"}}>
+          🔍 Searching project: <strong>{d.projectKey}</strong>
+        </p>
+      )}
 
       {autoQuery && (
         <div style={{background:"#1B2A4A",color:"#8FC3F7",fontSize:11,padding:"6px 12px",
@@ -743,8 +733,8 @@ function StepReview({ d, onSubmit, submitting }) {
      ok:!!d.expectedBehavior&&!!d.actualBehavior&&d.expectedBehavior.toLowerCase()!==d.actualBehavior.toLowerCase()},
     {label:"Evidence — at least one reference",
      ok:!!(d.screenshots||d.videos||d.logs||d.testIds)},
-    {label:"Duplicate search — project selected, search performed, outcome resolved",
-     ok:!!d.projectKey&&d.searchDone&&!!d.dupOutcome&&d.dupOutcome!=="open_match"},
+    {label:"Duplicate search — performed and outcome resolved",
+     ok:d.searchDone&&!!d.dupOutcome&&d.dupOutcome!=="open_match"},
   ];
   const pass = checks.every(c=>c.ok);
 
@@ -1001,7 +991,7 @@ function ConfigPage({ d, set }) {
         <div style={sHead()}>Jira Settings</div>
         <div style={sBody}>
           {[
-            {label:"Jira Site URL",hint:"Your Atlassian site URL",val:CONFIG.siteUrl,key:"siteUrl",ph:"https://company.atlassian.net"},
+            {label:"Jira Site URL",hint:"Your Atlassian site URL",val:CONFIG.jiraSiteUrl,key:"siteUrl",ph:"https://company.atlassian.net"},
             {label:"Governed Projects",hint:"Comma-separated project keys",val:"SW",key:"projects",ph:"SW, HW, FW"},
             {label:"Governed Issue Types",hint:"Comma-separated issue types",val:"Bug",key:"issueTypes",ph:"Bug"},
             {label:"Gated Statuses",hint:"Statuses that trigger the quality gate",val:"Ready for Triage, Ready for Dev, Triage",key:"statuses",ph:"Ready for Triage, Ready for Dev"},
@@ -1014,6 +1004,22 @@ function ConfigPage({ d, set }) {
               <input defaultValue={f.val} placeholder={f.ph} style={{...inp,boxSizing:"border-box"}} />
             </div>
           ))}
+          {/* Default Project selector */}
+          <div style={fRow}>
+            <div>
+              <div style={{fontWeight:600,fontSize:13,color:"var(--gray-900)"}}>Default Project</div>
+              <div style={{fontSize:11,color:"var(--gray-500)",marginTop:2}}>Default project pre-selected in the bug wizard</div>
+            </div>
+            <select
+              value={CONFIG.defaultProject}
+              style={{...inp,background:"#fff",boxSizing:"border-box"}}
+              onChange={()=>{}}
+            >
+              {CONFIG.governedProjects.map(p=>(
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -1140,7 +1146,7 @@ function App() {
     !!d.expectedBehavior&&!!d.actualBehavior,
     !!(d.screenshots||d.videos||d.logs||d.testIds),
     true, // traceability optional
-    !!d.projectKey&&d.searchDone&&!!d.dupOutcome,
+    d.searchDone&&!!d.dupOutcome&&d.dupOutcome!=="open_match",
     true,
   ];
 

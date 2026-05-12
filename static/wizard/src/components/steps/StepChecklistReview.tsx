@@ -52,12 +52,11 @@ function clientChecklist(data: SQABugData): ChecklistItem[] {
   });
 
   const dup = data.duplicateSearch;
-  const dupOk = !!data.projectKey && dup.searchPerformed && !!dup.outcome && dup.outcome !== 'open_match';
+  const dupOk = dup.searchPerformed && !!dup.outcome && dup.outcome !== 'open_match';
   items.push({
-    key: 'duplicateSearch', label: 'Duplicate search — project selected, search performed, outcome resolved',
+    key: 'duplicateSearch', label: 'Duplicate search — performed and outcome resolved',
     passed: dupOk,
-    message: !data.projectKey ? 'Select a Jira project.' :
-      !dup.searchPerformed ? 'Duplicate search not performed.' :
+    message: !dup.searchPerformed ? 'Duplicate search not performed.' :
       !dup.outcome ? 'Select a duplicate search outcome.' :
       dup.outcome === 'open_match' ? 'Open duplicate found — add evidence to the existing bug.' : '',
   });

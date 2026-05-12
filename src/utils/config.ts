@@ -59,6 +59,7 @@ export const DEFAULT_CATEGORIES: CategoryConfig[] = [
 export const DEFAULT_CONFIG: AppConfig = {
   jiraSiteUrl: 'https://noahmed.atlassian.net',
   governedProjects: ['SW'],
+  defaultProject: 'SW',
   governedIssueTypes: ['Bug'],
   gatedStatuses: ['Ready for Triage', 'Ready for Dev', 'Triage'],
   categories: DEFAULT_CATEGORIES,
