@@ -35,7 +35,7 @@ const Step9Classification: React.FC<Props> = ({ bugData, onChange, onValidate })
 
   return (
     <div>
-      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>8 — Classification Suggestion</h3>
+      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>7 — Classification Suggestion</h3>
       <p style={{ margin: '0 0 8px', color: '#5E6C84', fontSize: '13px' }}>
         Optional SQA suggestions only. Final severity and priority are set by triage/product/engineering.
       </p>

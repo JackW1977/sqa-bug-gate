@@ -10,8 +10,7 @@ import ValidationMessage from './common/ValidationMessage';
 import StepProject from './steps/StepProject';
 import Step1Summary from './steps/Step1Summary';
 import Step2Preconditions from './steps/Step3Preconditions';
-import Step4StepsToReproduce from './steps/Step4StepsToReproduce';
-import Step5ExpectedActual from './steps/Step5ExpectedActual';
+import Step3ExpectedActual from './steps/Step5ExpectedActual';
 import Step6Impact from './steps/Step6Impact';
 import Step7Evidence from './steps/Step7Evidence';
 import Step8Traceability from './steps/Step8Traceability';
@@ -123,8 +122,7 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
     project:          <StepProject projects={projects} bugData={bugData} onChange={updateBugData} onValidate={setValid} config={config} />,
     summary:          <Step1Summary {...stepProps} />,
     preconditions:    <Step2Preconditions {...stepProps} />,
-    stepsToReproduce: <Step4StepsToReproduce {...stepProps} />,
-    expectedActual:   <Step5ExpectedActual {...stepProps} />,
+    expectedActual:   <Step3ExpectedActual {...stepProps} />,
     impact:           <Step6Impact {...stepProps} />,
     evidence:         <Step7Evidence {...stepProps} />,
     traceability:     <Step8Traceability {...stepProps} />,

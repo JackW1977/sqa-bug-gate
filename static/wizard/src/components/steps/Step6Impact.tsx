@@ -37,7 +37,7 @@ const Step6Impact: React.FC<Props> = ({ bugData, onChange, onValidate }) => {
 
   return (
     <div>
-      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>5 — Impact (SQA View)</h3>
+      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>4 — Impact (SQA View)</h3>
       <p style={{ margin: '0 0 16px', color: '#5E6C84', fontSize: '13px' }}>
         Describe impact in user and workflow terms. The goal is to help triage understand urgency, not to assign priority.
       </p>

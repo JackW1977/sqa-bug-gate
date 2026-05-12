@@ -88,8 +88,8 @@ const MOCK_CLOSED = [
 ];
 
 const WIZARD_STEPS = [
-  "Project", "Summary", "Preconditions",
-  "Steps to Reproduce", "Expected vs Actual", "Impact",
+  "Project", "Summary", "Preconditions & Steps",
+  "Expected vs Actual", "Impact",
   "Evidence", "Traceability", "Classification",
   "Duplicate Search", "Review & Submit"
 ];
@@ -351,21 +351,24 @@ function StepSummary({ d, set }) {
   );
 }
 
-// ─── Step 2 – Preconditions & Hardware ────────────────────────────────────────
+// ─── Step 2 – Preconditions & Steps to Reproduce ─────────────────────────────
 
 function StepPreconditions({ d, set }) {
+  function updateStep(i, v) { const s=[...d.steps]; s[i]=v; set({steps:s}); }
+  function addStep() { set({steps:[...d.steps,""]}); }
+  function removeStep(i) { if(d.steps.length<=1) return; set({steps:d.steps.filter((_,j)=>j!==i)}); }
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>2 — Preconditions & Hardware</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>2 — Preconditions & Steps to Reproduce</h3>
       <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
-        Document the hardware in use and the system state before step 1 of reproduction.
+        Document the hardware, system state, and exact reproduction steps.
       </p>
       <Field label="Hardware Configuration" required hint="System type, TIC model, controller, scope, peripherals">
         <textarea rows={3} value={d.hardwareConfig}
           placeholder="e.g. NovaCyclone Gen2 · TIC v4 · USB Bronchoscope BC-12 · Standard OR cart · Win 11 TPS workstation"
           onChange={e=>set({hardwareConfig:e.target.value})} style={{...inp,resize:"vertical"}} />
       </Field>
-      <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,cursor:"pointer"}}>
+      <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:12,cursor:"pointer"}}>
         <input type="checkbox" checked={d.noPreconditions} onChange={e=>set({noPreconditions:e.target.checked})} />
         <span style={{fontWeight:500,fontSize:14}}>No special preconditions</span>
       </label>
@@ -377,61 +380,47 @@ function StepPreconditions({ d, set }) {
         </Field>
       ) : (
         <Field label="Preconditions" required hint="List each on its own line.">
-          <textarea rows={5} value={d.preconditions}
+          <textarea rows={4} value={d.preconditions}
             placeholder={"1. System at home screen after clean boot (≥5 min uptime)\n2. Logged in as Clinical Operator\n3. No active case in progress\n4. BC-12 USB scope connected and LED green\n5. TPS planning complete for test case #TC-4521"}
             onChange={e=>set({preconditions:e.target.value})} style={{...inp,resize:"vertical"}} />
         </Field>
       )}
-    </div>
-  );
-}
-
-// ─── Step 3 – Steps to Reproduce ──────────────────────────────────────────────
-
-function StepRepro({ d, set }) {
-  function updateStep(i, v) { const s=[...d.steps]; s[i]=v; set({steps:s}); }
-  function addStep() { set({steps:[...d.steps,""]}); }
-  function removeStep(i) { if(d.steps.length<=1) return; set({steps:d.steps.filter((_,j)=>j!==i)}); }
-  return (
-    <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>3 — Steps to Reproduce</h3>
-      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
-        Number every action from a known starting state. Another SW engineer must be able to follow these steps cold.
-      </p>
-      <Field label="Initial State" required hint="What is the system state before step 1?">
-        <input type="text" value={d.initialState}
-          placeholder="e.g. At home screen, BC-12 scope connected, no active case, TPS planning complete"
-          onChange={e=>set({initialState:e.target.value})} style={inp} />
-      </Field>
-      <div style={{marginBottom:14}}>
-        <label style={{display:"block",fontWeight:600,fontSize:13,marginBottom:8,color:"var(--gray-900)"}}>
-          Steps <span style={{color:"var(--red)"}}>*</span>
-        </label>
-        {d.steps.map((step,i)=>(
-          <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-            <div style={{minWidth:24,height:24,background:"var(--blue)",color:"#fff",borderRadius:"50%",
-              display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700}}>{i+1}</div>
-            <input type="text" value={step} placeholder={`Step ${i+1}…`}
-              onChange={e=>updateStep(i,e.target.value)} style={{...inp,flex:1}} />
-            <button onClick={()=>removeStep(i)} disabled={d.steps.length<=1}
-              style={{padding:"5px 9px",background:"var(--red-light)",color:"var(--red-dark)",
-                border:"1px solid #FFBDAD",borderRadius:4,cursor:"pointer",fontSize:13}}>×</button>
-          </div>
-        ))}
-        <button onClick={addStep}
-          style={{padding:"5px 13px",background:"var(--blue-light)",color:"var(--blue)",
-            border:"1px solid #B3D4FF",borderRadius:4,cursor:"pointer",fontSize:13,marginTop:2}}>+ Add Step</button>
+      <div style={{borderTop:"1px solid var(--gray-100)",marginTop:20,paddingTop:20}}>
+        <Field label="Initial State" required hint="System state immediately before step 1">
+          <input type="text" value={d.initialState}
+            placeholder="e.g. At home screen, BC-12 scope connected, no active case, TPS planning complete"
+            onChange={e=>set({initialState:e.target.value})} style={inp} />
+        </Field>
+        <div style={{marginBottom:14}}>
+          <label style={{display:"block",fontWeight:600,fontSize:13,marginBottom:8,color:"var(--gray-900)"}}>
+            Steps to Reproduce <span style={{color:"var(--red)"}}>*</span>
+          </label>
+          {d.steps.map((step,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+              <div style={{minWidth:24,height:24,background:"var(--blue)",color:"#fff",borderRadius:"50%",
+                display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700}}>{i+1}</div>
+              <input type="text" value={step} placeholder={`Step ${i+1}…`}
+                onChange={e=>updateStep(i,e.target.value)} style={{...inp,flex:1}} />
+              <button onClick={()=>removeStep(i)} disabled={d.steps.length<=1}
+                style={{padding:"5px 9px",background:"var(--red-light)",color:"var(--red-dark)",
+                  border:"1px solid #FFBDAD",borderRadius:4,cursor:"pointer",fontSize:13}}>×</button>
+            </div>
+          ))}
+          <button onClick={addStep}
+            style={{padding:"5px 13px",background:"var(--blue-light)",color:"var(--blue)",
+              border:"1px solid #B3D4FF",borderRadius:4,cursor:"pointer",fontSize:13,marginTop:2}}>+ Add Step</button>
+        </div>
       </div>
     </div>
   );
 }
 
-// ─── Step 4 – Expected vs Actual ──────────────────────────────────────────────
+// ─── Step 3 – Expected vs Actual ──────────────────────────────────────────────
 
 function StepExpAct({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>4 — Expected vs Actual Behavior</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>3 — Expected vs Actual Behavior</h3>
       <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
         Expected = per design/requirements. Actual = what was observed. Root-cause theories → Notes only.
       </p>
@@ -454,12 +443,12 @@ function StepExpAct({ d, set }) {
   );
 }
 
-// ─── Step 5 – Impact ──────────────────────────────────────────────────────────
+// ─── Step 4 – Impact ──────────────────────────────────────────────────────────
 
 function StepImpact({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>5 — Impact (SQA View)</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>4 — Impact (SQA View)</h3>
       <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
         Describe impact in user/workflow terms to help triage understand urgency.
       </p>
@@ -501,12 +490,12 @@ function StepImpact({ d, set }) {
   );
 }
 
-// ─── Step 6 – Evidence ────────────────────────────────────────────────────────
+// ─── Step 5 – Evidence ────────────────────────────────────────────────────────
 
 function StepEvidence({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>6 — Evidence & Attachments</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>5 — Evidence & Attachments</h3>
       <Banner type="info">
         ℹ️ Attach actual files to the SW Jira issue after creation. Reference file names/locations below.
       </Banner>
@@ -534,12 +523,12 @@ function StepEvidence({ d, set }) {
   );
 }
 
-// ─── Step 7 – Traceability ────────────────────────────────────────────────────
+// ─── Step 6 – Traceability ────────────────────────────────────────────────────
 
 function StepTrace({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>7 — Traceability Links</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>6 — Traceability Links</h3>
       <Banner type="info">All fields optional. Do not guess requirement IDs.</Banner>
       <Field label="Requirement ID(s)" hint="SW requirement IDs, e.g. SW-REQ-1042">
         <input type="text" value={d.reqIds} placeholder="SW-REQ-1042, SW-REQ-1053"
@@ -557,12 +546,12 @@ function StepTrace({ d, set }) {
   );
 }
 
-// ─── Step 8 – Classification ──────────────────────────────────────────────────
+// ─── Step 7 – Classification ──────────────────────────────────────────────────
 
 function StepClass({ d, set }) {
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>8 — Classification Suggestion</h3>
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>7 — Classification Suggestion</h3>
       <Banner type="warning">⚠️ SQA suggestion only — final severity/priority set by triage/product/engineering.</Banner>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
         <Field label="Type">
@@ -592,7 +581,7 @@ function StepClass({ d, set }) {
   );
 }
 
-// ─── Step 9 – Duplicate Search ───────────────────────────────────────────────
+// ─── Step 8 – Duplicate Search ───────────────────────────────────────────────
 
 function StepDupSearch({ d, set }) {
   const [searching, setSearching] = React.useState(false);
@@ -727,15 +716,15 @@ function StepDupSearch({ d, set }) {
   );
 }
 
-// ─── Step 10 – Review & Submit ───────────────────────────────────────────────
+// ─── Step 9 – Review & Submit ───────────────────────────────────────────────
 
 function StepReview({ d, onSubmit, submitting }) {
   const checks = [
     {label:"Summary — category, sub-category, user-visible problem",
      ok:!!d.category&&!!d.subCategory&&d.problemStatement.length>=10&&!!d.conditionClause},
-    {label:"Preconditions & Hardware — hardware config documented, preconditions described",
-     ok:!!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions))},
-    {label:"Steps to reproduce — ≥2 steps from known initial state",
+    {label:"Preconditions & steps — hardware, preconditions, initial state, ≥2 steps",
+     ok:!!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions))&&!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2},
+    {label:"Preconditions & steps — hardware, preconditions, initial state, ≥2 steps",
      ok:!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2},
     {label:"Expected vs actual behavior — clearly differentiated",
      ok:!!d.expectedBehavior&&!!d.actualBehavior&&d.expectedBehavior.toLowerCase()!==d.actualBehavior.toLowerCase()},
@@ -885,8 +874,7 @@ function App() {
   const stepValid = [
     !!d.projectKey,
     !!d.category&&!!d.subCategory&&d.problemStatement.length>=10&&!!d.conditionClause,
-    !!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions)),
-    !!d.initialState&&d.steps.filter(s=>s.trim()).length>=2,
+    !!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions))&&!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2,
     !!d.expectedBehavior&&!!d.actualBehavior,
     !!d.userWorkflowImpact&&!!d.occurrence,
     !!(d.screenshots||d.videos||d.logs||d.testIds),
@@ -909,7 +897,6 @@ function App() {
     <StepProject d={d} set={set} />,
     <StepSummary d={d} set={set} />,
     <StepPreconditions d={d} set={set} />,
-    <StepRepro d={d} set={set} />,
     <StepExpAct d={d} set={set} />,
     <StepImpact d={d} set={set} />,
     <StepEvidence d={d} set={set} />,
