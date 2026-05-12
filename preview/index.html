@@ -263,18 +263,29 @@ function DebugBar({ step, totalSteps }) {
 
 // ─── Progress ─────────────────────────────────────────────────────────────────
 
-function Progress({ steps, current }) {
+function Progress({ steps, current, onNavigate }) {
   return (
     <div style={{display:"flex",alignItems:"center",overflowX:"auto",paddingBottom:8,marginBottom:20}}>
       {steps.map((s, i) => {
         const done = i < current, active = i === current;
         return (
           <React.Fragment key={i}>
-            <div style={{display:"flex",flexDirection:"column",alignItems:"center",minWidth:56}}>
+            <div
+              onClick={() => onNavigate && onNavigate(i)}
+              title={`Go to: ${s}`}
+              style={{display:"flex",flexDirection:"column",alignItems:"center",minWidth:56,
+                cursor:"pointer",borderRadius:4,padding:"3px 2px",
+                transition:"background 0.15s",
+                outline:"none",userSelect:"none"}}
+              onMouseEnter={e => e.currentTarget.style.background="rgba(0,82,204,0.07)"}
+              onMouseLeave={e => e.currentTarget.style.background="transparent"}
+            >
               <div style={{width:26,height:26,borderRadius:"50%",display:"flex",
                 alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,
                 background:done?"var(--green)":active?"var(--blue)":"var(--gray-100)",
-                color:done||active?"#fff":"var(--gray-500)"}}>
+                color:done||active?"#fff":"var(--gray-500)",
+                boxShadow:active?"0 0 0 3px rgba(0,82,204,0.2)":"none",
+                transition:"box-shadow 0.15s"}}>
                 {done?"✓":i+1}
               </div>
               <span style={{fontSize:9,marginTop:3,textAlign:"center",whiteSpace:"nowrap",
@@ -1177,7 +1188,7 @@ function App() {
                   noahmed.atlassian.net · Project <strong>SW</strong> · All mandatory sections must pass before submission.
                 </p>
               </div>
-              <Progress steps={WIZARD_STEPS} current={step} />
+              <Progress steps={WIZARD_STEPS} current={step} onNavigate={i => setStep(i)} />
               <div style={{background:"#fff",border:"1px solid var(--gray-100)",borderRadius:4,
                 padding:24,boxShadow:"0 1px 3px rgba(0,0,0,0.06)"}}>
                 {STEPS_COMPONENTS[step]}

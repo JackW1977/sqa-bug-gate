@@ -167,7 +167,7 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
         Noah Medical SQA Bug Report Quality Gate — all mandatory sections must pass before submission.
       </p>
 
-      <WizardProgress steps={steps} currentIndex={currentIndex} />
+      <WizardProgress steps={steps} currentIndex={currentIndex} onNavigate={setCurrentIndex} />
 
       <div style={{ background: '#fff', border: '1px solid #DFE1E6', borderRadius: '4px', padding: '24px' }}>
         {submitError && (
