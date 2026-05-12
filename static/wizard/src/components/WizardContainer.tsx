@@ -7,7 +7,6 @@ import StepNavigation from './common/StepNavigation';
 import ValidationMessage from './common/ValidationMessage';
 
 // Step components
-import StepProject from './steps/StepProject';
 import Step1Summary from './steps/Step1Summary';
 import Step2Preconditions from './steps/Step3Preconditions';
 import Step3ExpectedActual from './steps/Step5ExpectedActual';
@@ -117,13 +116,12 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
   const stepProps = { bugData, onChange: updateBugData, onValidate: setValid, config };
 
   const stepMap: Record<string, React.ReactNode> = {
-    project:          <StepProject projects={projects} bugData={bugData} onChange={updateBugData} onValidate={setValid} config={config} />,
     summary:          <Step1Summary {...stepProps} />,
     preconditions:    <Step2Preconditions {...stepProps} />,
     expectedActual:   <Step3ExpectedActual {...stepProps} />,
     evidence:         <Step4Evidence {...stepProps} />,
     traceability:     <Step8Traceability {...stepProps} />,
-    duplicateSearch:  <StepDuplicateSearch {...stepProps} />,
+    duplicateSearch:  <StepDuplicateSearch {...stepProps} projects={projects} />,
     review:           <StepChecklistReview {...stepProps} isSubmitting={isSubmitting} onSubmit={handleSubmit} />,
   };
 

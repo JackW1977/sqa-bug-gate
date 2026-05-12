@@ -88,7 +88,7 @@ const MOCK_CLOSED = [
 ];
 
 const WIZARD_STEPS = [
-  "Project", "Summary", "Preconditions & Steps",
+  "Summary", "Preconditions & Steps",
   "Expected vs Actual",
   "Evidence", "Traceability",
   "Duplicate Search", "Review & Submit"
@@ -275,29 +275,6 @@ function Nav({ idx, total, canNext, isLast, isSubmitting, onBack, onNext, onSubm
 }
 
 // ─── Step 0 – Project ─────────────────────────────────────────────────────────
-
-function StepProject({ d, set }) {
-  return (
-    <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>Select Project</h3>
-      <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
-        Governed projects configured for this installation.
-      </p>
-      <Field label="Jira Project" required>
-        <select value={d.projectKey} onChange={e=>set({projectKey:e.target.value})} style={inp}>
-          <option value="">— Select a project —</option>
-          <option value="SW">Noah Medical Platform (SW)</option>
-        </select>
-      </Field>
-      {d.projectKey === "SW" && (
-        <Banner type="success">
-          ✓ Project <strong>SW</strong> is governed by the SQA Bug Gate.
-          {" "}<a href={CONFIG.boardUrl} target="_blank">Open SW Board ↗</a>
-        </Banner>
-      )}
-    </div>
-  );
-}
 
 // ─── Step 1 – Summary ─────────────────────────────────────────────────────────
 
@@ -532,9 +509,25 @@ function StepDupSearch({ d, set }) {
 
   return (
     <div>
-      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>9 — Duplicate Search — SW Project</h3>
+      {/* ── Project selector ── */}
+      <Field label="Jira Project" required>
+        <select value={d.projectKey} onChange={e=>set({projectKey:e.target.value})} style={inp}>
+          <option value="">— Select a project —</option>
+          <option value="SW">Noah Medical Platform (SW)</option>
+        </select>
+      </Field>
+      {d.projectKey === "SW" && (
+        <Banner type="success">
+          ✓ Project <strong>SW</strong> is governed by the SQA Bug Gate.
+          {" "}<a href={CONFIG.boardUrl} target="_blank">Open SW Board ↗</a>
+        </Banner>
+      )}
+
+      <div style={{borderTop:"1px solid var(--gray-100)",margin:"20px 0"}} />
+
+      <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>6 — Duplicate Search</h3>
       <p style={{margin:"0 0 10px",fontSize:13,color:"var(--gray-500)"}}>
-        Searching <strong>noahmed.atlassian.net</strong> / project <strong>SW</strong>. Run before creating.
+        Search existing bugs before creating a new one. You must run the search and pick an outcome.
       </p>
 
       {autoQuery && (
@@ -776,13 +769,12 @@ function App() {
   function set(patch) { setD(prev=>({...prev,...patch})); }
 
   const stepValid = [
-    !!d.projectKey,
     !!d.category&&!!d.subCategory&&d.problemStatement.length>=10&&!!d.conditionClause,
     !!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions))&&!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2,
     !!d.expectedBehavior&&!!d.actualBehavior,
     !!(d.screenshots||d.videos||d.logs||d.testIds),
     true, // traceability optional
-    d.searchDone&&!!d.dupOutcome,
+    !!d.projectKey&&d.searchDone&&!!d.dupOutcome,
     true,
   ];
 
@@ -797,7 +789,6 @@ function App() {
   }
 
   const STEPS_COMPONENTS = [
-    <StepProject d={d} set={set} />,
     <StepSummary d={d} set={set} />,
     <StepPreconditions d={d} set={set} />,
     <StepExpAct d={d} set={set} />,
