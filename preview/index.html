@@ -128,8 +128,6 @@ const INITIAL = {
     "Tap 'Start Navigation' to enter the bronchoscopy view",
     "Observe the bronchoscope feed panel (top-left quadrant)",
   ],
-  reproducibility: "3/3",
-  intermittentNotes: "",
 
   // Step 4 — Expected vs Actual
   expectedBehavior: "Bronchoscope feed initializes within 2 s of entering navigation view; live video is visible in the feed panel.",
@@ -394,7 +392,6 @@ function StepRepro({ d, set }) {
   function updateStep(i, v) { const s=[...d.steps]; s[i]=v; set({steps:s}); }
   function addStep() { set({steps:[...d.steps,""]}); }
   function removeStep(i) { if(d.steps.length<=1) return; set({steps:d.steps.filter((_,j)=>j!==i)}); }
-  const REPRO = ["3/3","2/3","1/3","5/5","2/5","1/5","2/10","1/10","Observed once","Consistent","Intermittent"];
   return (
     <div>
       <h3 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>3 — Steps to Reproduce</h3>
@@ -424,19 +421,6 @@ function StepRepro({ d, set }) {
         <button onClick={addStep}
           style={{padding:"5px 13px",background:"var(--blue-light)",color:"var(--blue)",
             border:"1px solid #B3D4FF",borderRadius:4,cursor:"pointer",fontSize:13,marginTop:2}}>+ Add Step</button>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-        <Field label="Reproducibility Rate" required>
-          <select value={d.reproducibility} onChange={e=>set({reproducibility:e.target.value})} style={inp}>
-            <option value="">— Select —</option>
-            {REPRO.map(o=><option key={o} value={o}>{o}</option>)}
-          </select>
-        </Field>
-        <Field label="Intermittent / Pattern Notes">
-          <textarea rows={2} value={d.intermittentNotes}
-            placeholder="e.g. Only on cold boot; not reproducible after warm restart"
-            onChange={e=>set({intermittentNotes:e.target.value})} style={{...inp,resize:"vertical"}} />
-        </Field>
       </div>
     </div>
   );
@@ -751,8 +735,8 @@ function StepReview({ d, onSubmit, submitting }) {
      ok:!!d.category&&!!d.subCategory&&d.problemStatement.length>=10&&!!d.conditionClause},
     {label:"Preconditions & Hardware — hardware config documented, preconditions described",
      ok:!!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions))},
-    {label:"Steps to reproduce — ≥2 steps, initial state, reproducibility",
-     ok:!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2&&!!d.reproducibility},
+    {label:"Steps to reproduce — ≥2 steps from known initial state",
+     ok:!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2},
     {label:"Expected vs actual behavior — clearly differentiated",
      ok:!!d.expectedBehavior&&!!d.actualBehavior&&d.expectedBehavior.toLowerCase()!==d.actualBehavior.toLowerCase()},
     {label:"Impact — user/workflow effect, workaround, frequency",
@@ -902,7 +886,7 @@ function App() {
     !!d.projectKey,
     !!d.category&&!!d.subCategory&&d.problemStatement.length>=10&&!!d.conditionClause,
     !!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions)),
-    !!d.initialState&&d.steps.filter(s=>s.trim()).length>=2&&!!d.reproducibility,
+    !!d.initialState&&d.steps.filter(s=>s.trim()).length>=2,
     !!d.expectedBehavior&&!!d.actualBehavior,
     !!d.userWorkflowImpact&&!!d.occurrence,
     !!(d.screenshots||d.videos||d.logs||d.testIds),

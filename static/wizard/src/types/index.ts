@@ -38,8 +38,6 @@ export interface SQAPreconditionsData {
 export interface SQAStepsToReproduceData {
   initialState: string;
   steps: string[];
-  reproducibility: string;
-  intermittentNotes: string;
 }
 
 export interface SQAExpectedActualData {
@@ -210,7 +208,7 @@ export const INITIAL_BUG_DATA: SQABugData = {
     hardwareConfig: '', mode: '', keySettings: '', dataProcedureContext: '', unknownReason: '',
   },
   preconditions: { preconditions: '', noPreconditions: false, noPreconditionsExplanation: '' },
-  stepsToReproduce: { initialState: '', steps: ['', ''], reproducibility: '', intermittentNotes: '' },
+  stepsToReproduce: { initialState: '', steps: ['', ''] },
   expectedActual: { expectedBehavior: '', actualBehavior: '', notes: '' },
   impact: {
     userWorkflowImpact: '', safetyRelevance: '',

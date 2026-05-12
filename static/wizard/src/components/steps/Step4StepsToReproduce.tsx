@@ -10,16 +10,10 @@ interface Props {
   config: AppConfig;
 }
 
-const REPRODUCIBILITY_OPTIONS = [
-  '3/3', '2/3', '1/3', '5/5', '2/5', '1/5',
-  '2/10', '1/10', 'Observed once', 'Consistent', 'Intermittent',
-];
-
 function validate(d: SQAStepsToReproduceData): string | null {
   if (!d.initialState.trim()) return 'Initial state is required.';
   const nonEmpty = d.steps.filter((s) => s.trim());
   if (nonEmpty.length < 2) return 'Provide at least 2 numbered steps.';
-  if (!d.reproducibility.trim()) return 'Reproducibility rate is required.';
   return null;
 }
 
@@ -110,24 +104,6 @@ const Step4StepsToReproduce: React.FC<Props> = ({ bugData, onChange, onValidate 
         >
           + Add Step
         </button>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-        <FormField label="Reproducibility Rate" required hint="How often does this occur?">
-          <select value={d.reproducibility}
-            onChange={(e) => update({ reproducibility: e.target.value })} style={inp}>
-            <option value="">— Select —</option>
-            {REPRODUCIBILITY_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-            <option value="custom">Other (specify below)</option>
-          </select>
-        </FormField>
-
-        <FormField label="Intermittent / Pattern Notes" hint="Timing, data size, device state, environmental factors">
-          <textarea rows={2} value={d.intermittentNotes}
-            placeholder="e.g. Occurs only when scope temp is low (<15°C)"
-            onChange={(e) => update({ intermittentNotes: e.target.value })}
-            style={{ ...inp, resize: 'vertical' }} />
-        </FormField>
       </div>
     </div>
   );
