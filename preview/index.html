@@ -128,23 +128,86 @@ const MOCK_SPRINTS = [
   {id:"s49",name:"Sprint 49 – Jul 2026",state:"future"},
 ];
 
+// ─── Pre-populated test data (all steps valid on load) ───────────────────────
 const INITIAL = {
-  projectKey: "SW", category: "", subCategory: "", problemStatement: "",
-  conditionClause: "", softwareVersion: "", branchRelease: "", buildNumber: "",
-  hardwareConfig: "", mode: "", unknownReason: "",
-  preconditions: "", noPreconditions: false, noPreconditionsExp: "",
-  initialState: "", steps: ["", ""], reproducibility: "", intermittentNotes: "",
-  expectedBehavior: "", actualBehavior: "", notes: "",
-  userWorkflowImpact: "", safetyRelevance: "", workaroundDesc: "",
-  workaroundPracticality: "", occurrence: "",
-  screenshots: "", videos: "", logs: "", testIds: "",
-  reqIds: "", riskIds: "", relatedKeys: "",
-  bugType: "", impactCat: "", prioritySug: "", priorityRationale: "",
+  // Step 0 — Project
+  projectKey: "SW",
+
+  // Step 1 — Summary
+  category: "R&C",
+  subCategory: "BC (Bronchoscope)",
+  problemStatement: "Bronchoscope feed fails to initialize and remains black",
+  conditionClause: "when connecting USB scope on a cold-boot system",
+
+  // Step 2 — Environment
+  softwareVersion: "1.4.0.1-37",
+  branchRelease: "1D.0 dev",
+  buildNumber: "1.4.0.1-37",
+  hardwareConfig: "NovaCyclone Gen2 · TIC v4 · USB Bronchoscope BC-12 · Standard OR cart · Win 11 TPS workstation",
+  mode: "Live, EN-US, Wi-Fi, Fluoroscopy ON",
+  keySettings: "Calibration valid, auto-homing enabled",
+  dataProcedureContext: "Post-planning phantom lung case, 10 min session uptime",
+  unknownReason: "",
+
+  // Step 3 — Preconditions
+  noPreconditions: false,
+  noPreconditionsExp: "",
+  preconditions: "1. System at home screen after clean boot (≥5 min uptime)\n2. Logged in as Clinical Operator (no admin override)\n3. No active case in progress\n4. BC-12 USB bronchoscope connected — LED indicator green\n5. TPS planning complete for test case #TC-4521 (phantom lung)",
+
+  // Step 4 — Steps to Reproduce
+  initialState: "Home screen, BC-12 scope connected and LED green, no active case",
+  steps: [
+    "Verify bronchoscope LED is green on home screen",
+    "Tap 'New Procedure' and select test case TC-4521",
+    "Tap 'Start Navigation' to enter the bronchoscopy view",
+    "Observe the bronchoscope feed panel (top-left quadrant)",
+  ],
+  reproducibility: "3/3",
+  intermittentNotes: "",
+
+  // Step 5 — Expected vs Actual
+  expectedBehavior: "Bronchoscope feed initializes within 2 s of entering navigation view; live video is visible in the feed panel.",
+  actualBehavior: "Feed panel remains fully black. No error message shown. Scope LED remains green. Session must be restarted to recover.",
+  notes: "Suspected USB driver initialization race condition on cold boot — not confirmed. See log SW-LOG-2026-05-12-0937.",
+
+  // Step 6 — Impact
+  userWorkflowImpact: "Clinician cannot visualize the bronchoscope during the navigation phase. Full session restart required (~10 min delay). Observed across 3 consecutive procedure simulations.",
+  safetyRelevance: "",
+  workaroundDesc: "Disconnect and reconnect the USB scope, then restart the TPS session.",
+  workaroundPracticality: "cumbersome",
+  occurrence: "frequent",
+
+  // Step 7 — Evidence
+  screenshots: "SW-feed-black-01.png, SW-feed-black-02.png",
+  videos: "SW-repro-video-TC4521.mp4",
+  logs: "SW-LOG-2026-05-12-0937 (TPS log, UTC-7, 09:37–09:52)",
+  testIds: "TC-4521, TC-4522",
+
+  // Step 8 — Traceability
+  reqIds: "REQ-1042, REQ-1053",
+  riskIds: "RISK-214",
+  relatedKeys: "SW-3944",
+
+  // Step 9 — Classification
+  bugType: "Bug",
+  impactCat: "Major",
+  prioritySug: "High",
+  priorityRationale: "Blocks the core navigation workflow on cold-boot; no graceful recovery path; cumbersome workaround not acceptable for clinical simulation.",
+
+  // Step 10 — Jira Fields
+  coreTeam: "Visualization",
+  affectsVersions: ["17", "17.1"],
+  fixVersions: ["0.20.0.1"],
+  components: ["Visualization", "Navigation"],
+  sprint: "s47",
+  complexity: "Medium",
+  whereToHaveCaught: "Integration Testing",
+  numberOfIncidents: "2",
+  relatedSoWItem: "SW-4100",
+  incidents: "INC-088, INC-091",
+
+  // Step 11 — Duplicate Search
   searchDone: false, searchResults: [], dupOutcome: "", dupLinked: [],
-  // jiraFields
-  coreTeam: "", affectsVersions: [], fixVersions: [], components: [],
-  sprint: "", complexity: "", whereToHaveCaught: "",
-  numberOfIncidents: "", relatedSoWItem: "", incidents: "",
 };
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
