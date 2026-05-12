@@ -212,80 +212,67 @@ function GleanBtn({ value, onAccept, context, enabled }) {
 
   if (!enabled || !value || !value.trim()) return null;
 
-  function mockRephrase(text, ctx) {
-    // Context-aware formal SQA rephrasing for demo purposes
-    const t = text.trim();
-    const ctx2 = (ctx || "").toLowerCase();
+  async function handleClick() {
+    const token   = localStorage.getItem("glean_preview_token") || "";
+    const baseUrl = (INITIAL.gleanBaseUrl || "").replace(/\/$/, "");
 
-    // Hardware configuration: dot-list → structured prose
-    if (ctx2.includes("hardware")) {
-      const parts = t.split(/\s*·\s*|\s*,\s*/).map(s => s.trim()).filter(Boolean);
-      if (parts.length >= 3) {
-        const [system, ...rest] = parts;
-        return `Test system: ${system}. Peripherals and configuration: ${rest.join(", ")}.`;
-      }
+    if (!token || !baseUrl) {
+      setSuggestion("Glean not configured — go to ⚙ Config and paste your API token.");
+      setStatus("error");
+      return;
     }
 
-    // Problem statement: ensure formal symptom phrasing
-    if (ctx2.includes("problem") || ctx2.includes("symptom")) {
-      return t
-        .replace(/^[a-z]/, c => c.toUpperCase())
-        .replace(/fails to/g, "does not")
-        .replace(/goes black/g, "displays no signal (black screen)")
-        .replace(/freezes/g, "becomes unresponsive")
-        .replace(/([^.!?])$/, "$1");
-    }
-
-    // Preconditions: number each line if not already numbered
-    if (ctx2.includes("precondition")) {
-      const lines = t.split("\n").map(l => l.trim()).filter(Boolean);
-      const numbered = lines.map((l, i) => {
-        const body = l.replace(/^\d+\.\s*/, "");
-        return `${i + 1}. ${body.replace(/^[a-z]/, c => c.toUpperCase())}.`.replace(/\.\./, ".");
-      });
-      return numbered.join("\n");
-    }
-
-    // Condition clause: standardise "when" phrasing
-    if (ctx2.includes("condition")) {
-      const clean = t.replace(/^when\s+/i, "").replace(/^after\s+/i, "");
-      return `Upon ${clean.replace(/^[A-Z]/, c => c.toLowerCase())}.`;
-    }
-
-    // Steps: capitalise and terminate each step
-    if (ctx2.includes("step") || ctx2.includes("initial")) {
-      return t
-        .replace(/^[a-z]/, c => c.toUpperCase())
-        .replace(/\btap\b/g, "Select")
-        .replace(/\bclick\b/g, "Select")
-        .replace(/\bopen\b/g, "Navigate to")
-        .replace(/([^.!?])$/, "$1.");
-    }
-
-    // Expected / actual behavior: add formal structure
-    if (ctx2.includes("expected") || ctx2.includes("actual")) {
-      return t
-        .replace(/^[a-z]/, c => c.toUpperCase())
-        .replace(/should\s+/g, "shall ")
-        .replace(/([^.!?])$/, "$1");
-    }
-
-    // Fallback: fix contractions, capitalise, terminate
-    return t
-      .replace(/doesn't/g, "does not").replace(/don't/g, "do not")
-      .replace(/isn't/g, "is not").replace(/can't/g, "cannot")
-      .replace(/won't/g, "will not").replace(/it's/g, "it is")
-      .replace(/\bi\b/g, "I")
-      .replace(/^[a-z]/, c => c.toUpperCase())
-      .replace(/([^.!?])$/, "$1.");
-  }
-
-  function handleClick() {
     setStatus("loading");
-    setTimeout(() => {
-      setSuggestion(mockRephrase(value, context));
-      setStatus("preview");
-    }, 1200);
+
+    const SQA_PROMPT =
+      "You are an SQA technical writer for a medical device software company. " +
+      "Rephrase the provided text to be clear, precise, and professional, suitable for " +
+      "IEC 62304 / ISO 14971 documentation. Preserve all technical details, version numbers, " +
+      "hardware names, error messages, file names, and IDs exactly as given. " +
+      "Return only the rephrased text — no preamble, explanation, or quotation marks.";
+
+    try {
+      const res = await fetch(`${baseUrl}/api/v1/chat`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [{
+            author: "USER",
+            fragments: [{ text: `${SQA_PROMPT}\n\nField context: "${context}"\n\nText to rephrase:\n${value}` }],
+          }],
+          stream: false,
+        }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        setSuggestion(`Glean API error ${res.status}${errText ? ": " + errText.slice(0, 120) : ""}`);
+        setStatus("error");
+        return;
+      }
+
+      const data = await res.json();
+      const rephrased = (data.messages || [])
+        .filter(m => m.author !== "USER")
+        .flatMap(m => m.fragments || [])
+        .map(f => f.text)
+        .filter(Boolean)[0];
+
+      if (rephrased) {
+        setSuggestion(rephrased.trim());
+        setStatus("preview");
+      } else {
+        setSuggestion("Glean returned an empty response.");
+        setStatus("error");
+      }
+    } catch (e) {
+      setSuggestion(`Network error: ${e.message || e}. Check that your Glean base URL is correct and accessible.`);
+      setStatus("error");
+    }
   }
 
   const sBtn = (bg, color) => ({
@@ -988,7 +975,8 @@ function Toggle({ checked, onChange }) {
 function ConfigPage({ d, set }) {
   const [saving, setSaving] = React.useState(false);
   const [saveMsg, setSaveMsg] = React.useState(null);
-  const [showToken, setShowToken] = React.useState(!d.gleanTokenSet);
+  const storedToken = localStorage.getItem("glean_preview_token") || "";
+  const [showToken, setShowToken] = React.useState(!storedToken);
   const [tokenVal, setTokenVal] = React.useState("");
 
   const sCard = {background:"#fff",border:"1px solid var(--gray-100)",borderRadius:4,marginBottom:20,overflow:"hidden"};
@@ -1008,11 +996,16 @@ function ConfigPage({ d, set }) {
   function save() {
     setSaving(true);
     setTimeout(()=>{
-      if(showToken&&tokenVal.trim()) set({gleanTokenSet:true});
+      if (tokenVal.trim()) {
+        localStorage.setItem("glean_preview_token", tokenVal.trim());
+        set({gleanTokenSet:true});
+        setShowToken(false);
+        setTokenVal("");
+      }
       setSaving(false);
       setSaveMsg({ok:true,msg:"Settings saved successfully."});
       setTimeout(()=>setSaveMsg(null),3000);
-    }, 900);
+    }, 300);
   }
 
   const SaveBtn = ({size=14}) => (
@@ -1129,7 +1122,7 @@ function ConfigPage({ d, set }) {
                     onChange={e=>setTokenVal(e.target.value)}
                     style={{...inp,boxSizing:"border-box",borderColor:"#C0B6F2"}} />
                   <p style={{margin:"4px 0 0",fontSize:11,color:"var(--gray-500)"}}>
-                    Token is encrypted and stored in Forge secret storage. It is never sent to the browser.
+                    Stored in browser <code>localStorage</code> for this preview only. Never leaves your machine.
                   </p>
                   {d.gleanTokenSet&&(
                     <button onClick={()=>{setShowToken(false);setTokenVal("");}}
