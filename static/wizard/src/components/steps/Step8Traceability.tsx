@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
-import type { SQABugData, AppConfig, SQATraceabilityData } from '../../types';
+﻿import React, { useEffect } from 'react';
+import type { SoftwareBugData, AppConfig, SoftwareTraceabilityData } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
 
 interface Props {
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
 }
@@ -21,7 +21,7 @@ const Step8Traceability: React.FC<Props> = ({ bugData, onChange, onValidate }) =
 
   useEffect(() => { onValidate(true); }, []);
 
-  function update(patch: Partial<SQATraceabilityData>) {
+  function update(patch: Partial<SoftwareTraceabilityData>) {
     onChange({ traceability: { ...d, ...patch } });
   }
 

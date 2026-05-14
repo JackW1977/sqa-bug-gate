@@ -1,4 +1,4 @@
-// ─── Shared types (mirrors backend sqaInstructionModel.ts) ───────────────────
+﻿// ─── Shared types (mirrors backend SoftwareInstructionModel.ts) ───────────────────
 
 export interface SubCategoryConfig {
   value: string;
@@ -11,14 +11,14 @@ export interface CategoryConfig {
   subCategories: SubCategoryConfig[];
 }
 
-export interface SQASummaryData {
+export interface SoftwareSummaryData {
   category: string;
   subCategory: string;
   problemStatement: string;
   conditionClause: string;
 }
 
-export interface SQAEnvironmentData {
+export interface SoftwareEnvironmentData {
   softwareVersion: string;
   branchRelease: string;
   buildNumber: string;
@@ -29,18 +29,18 @@ export interface SQAEnvironmentData {
   unknownReason: string;
 }
 
-export interface SQAPreconditionsData {
+export interface SoftwarePreconditionsData {
   preconditions: string;
   noPreconditions: boolean;
   noPreconditionsExplanation: string;
 }
 
-export interface SQAStepsToReproduceData {
+export interface SoftwareStepsToReproduceData {
   initialState: string;
   steps: string[];
 }
 
-export interface SQAExpectedActualData {
+export interface SoftwareExpectedActualData {
   expectedBehavior: string;
   actualBehavior: string;
   notes: string;
@@ -49,7 +49,7 @@ export interface SQAExpectedActualData {
 export type WorkaroundPracticality = 'trivial' | 'acceptable' | 'cumbersome' | 'unrealistic' | '';
 export type OccurrenceEstimate = 'remote' | 'occasional' | 'frequent' | '';
 
-export interface SQAImpactData {
+export interface SoftwareImpactData {
   userWorkflowImpact: string;
   safetyRelevance: string;
   workaroundDescription: string;
@@ -57,14 +57,14 @@ export interface SQAImpactData {
   estimatedOccurrence: OccurrenceEstimate;
 }
 
-export interface SQAEvidenceData {
+export interface SoftwareEvidenceData {
   screenshotReferences: string;
   videoReferences: string;
   logDetails: string;
   testCaseIds: string;
 }
 
-export interface SQATraceabilityData {
+export interface SoftwareTraceabilityData {
   requirementIds: string;
   riskItemIds: string;
   relatedJiraKeys: string;
@@ -74,14 +74,14 @@ export type BugType = 'Bug' | 'Improvement' | '';
 export type ImpactCategory = 'Minor' | 'Intermediate' | 'Major' | 'Blocker' | '';
 export type PrioritySuggestion = 'Highest' | 'High' | 'Medium' | 'Low' | '';
 
-export interface SQAClassificationData {
+export interface SoftwareClassificationData {
   type: BugType;
   impactCategory: ImpactCategory;
   prioritySuggestion: PrioritySuggestion;
   priorityRationale: string;
 }
 
-export interface SQAJiraFieldsData {
+export interface SoftwareJiraFieldsData {
   affectsVersions: string[];
   fixVersions: string[];
   components: string[];
@@ -107,7 +107,7 @@ export interface DuplicateSearchResult {
   url?: string;
 }
 
-export interface SQADuplicateSearchData {
+export interface SoftwareDuplicateSearchData {
   searchPerformed: boolean;
   searchQuery: string;
   results: DuplicateSearchResult[];
@@ -116,19 +116,19 @@ export interface SQADuplicateSearchData {
   performedAt?: string;
 }
 
-export interface SQABugData {
+export interface SoftwareBugData {
   projectKey: string;
-  summary: SQASummaryData;
-  environment: SQAEnvironmentData;
-  preconditions: SQAPreconditionsData;
-  stepsToReproduce: SQAStepsToReproduceData;
-  expectedActual: SQAExpectedActualData;
-  impact: SQAImpactData;
-  evidence: SQAEvidenceData;
-  traceability: SQATraceabilityData;
-  classification: SQAClassificationData;
-  jiraFields: SQAJiraFieldsData;
-  duplicateSearch: SQADuplicateSearchData;
+  summary: SoftwareSummaryData;
+  environment: SoftwareEnvironmentData;
+  preconditions: SoftwarePreconditionsData;
+  stepsToReproduce: SoftwareStepsToReproduceData;
+  expectedActual: SoftwareExpectedActualData;
+  impact: SoftwareImpactData;
+  evidence: SoftwareEvidenceData;
+  traceability: SoftwareTraceabilityData;
+  classification: SoftwareClassificationData;
+  jiraFields: SoftwareJiraFieldsData;
+  duplicateSearch: SoftwareDuplicateSearchData;
 }
 
 export interface ChecklistItem {
@@ -199,7 +199,7 @@ export const WIZARD_STEPS: WizardStepMeta[] = [
   { id: 'review', label: 'Review & Submit' },
 ];
 
-export const INITIAL_BUG_DATA: SQABugData = {
+export const INITIAL_BUG_DATA: SoftwareBugData = {
   projectKey: '',
   summary: { category: '', subCategory: '', problemStatement: '', conditionClause: '' },
   environment: {

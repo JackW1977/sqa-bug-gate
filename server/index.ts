@@ -1,4 +1,4 @@
-import path from 'path';
+﻿import path from 'path';
 import dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -112,5 +112,5 @@ if (process.env.NODE_ENV === 'production') {
 
 const PORT = process.env.PORT ?? 3001;
 app.listen(PORT, () => {
-  console.log(`[SQA Bug Gate] Server running on http://localhost:${PORT}`);
+  console.log(`[Software Bug Gate] Server running on http://localhost:${PORT}`);
 });

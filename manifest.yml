@@ -1,32 +1,32 @@
-modules:
+﻿modules:
   jira:globalPage:
-    - key: sqa-bug-wizard
+    - key: Software-bug-wizard
       resource: wizard
       resolver:
         function: main-resolver
-      title: New SQA Bug
-      description: Guided wizard for creating SQA-quality bug reports
+      title: New Software Bug
+      description: Guided wizard for creating Software-quality bug reports
 
   jira:adminPage:
-    - key: sqa-admin-config
+    - key: Software-admin-config
       resource: wizard
       resolver:
         function: main-resolver
-      title: SQA Bug Gate — Settings
+      title: Software Bug Gate — Settings
 
   jira:issuePanel:
-    - key: sqa-issue-panel
+    - key: Software-issue-panel
       resource: panel
       resolver:
         function: main-resolver
-      title: SQA Gate Status
+      title: Software Gate Status
       icon: https://developer.atlassian.com/platform/forge/images/icons/icon.png
       layout: default
 
   jira:workflowValidator:
-    - key: sqa-workflow-validator
+    - key: Software-workflow-validator
       function: workflow-validator
-      description: Enforces SQA bug quality gate before transition to Ready for Triage
+      description: Enforces Software bug quality gate before transition to Ready for Triage
 
   function:
     - key: main-resolver
@@ -46,7 +46,7 @@ resources:
 
 app:
   id: ari:cloud:ecosystem::app/TO-BE-REGISTERED
-  name: SQA Bug Gate
+  name: Software Bug Gate
 
 permissions:
   external:

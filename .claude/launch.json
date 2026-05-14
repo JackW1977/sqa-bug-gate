@@ -1,8 +1,8 @@
-{
+﻿{
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "sqa-preview",
+      "name": "Software-preview",
       "runtimeExecutable": "python",
       "runtimeArgs": ["preview/server.py"],
       "port": 4400

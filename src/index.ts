@@ -1,4 +1,4 @@
-import Resolver from '@forge/resolver';
+﻿import Resolver from '@forge/resolver';
 import { createBug, getGateState } from './handlers/bugHandler';
 import { searchDuplicates, saveDuplicateOutcome } from './handlers/searchHandler';
 import { getChecklistStatus, validateChecklist } from './handlers/checklistHandler';
@@ -103,8 +103,8 @@ export async function workflowValidatorHandler(
       event as Parameters<typeof handleWorkflowValidation>[0],
     );
   } catch (err) {
-    console.error('[SQA WorkflowValidator] Unexpected error:', err);
-    // Fail open to avoid blocking non-SQA transitions due to app errors
+    console.error('[Software WorkflowValidator] Unexpected error:', err);
+    // Fail open to avoid blocking non-Software transitions due to app errors
     return {};
   }
 }

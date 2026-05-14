@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { api } from '../../api';
-import type { SQABugData, AppConfig, DuplicateSearchResult, DuplicateOutcome, SQADuplicateSearchData } from '../../types';
+import type { SoftwareBugData, AppConfig, DuplicateSearchResult, DuplicateOutcome, SoftwareDuplicateSearchData } from '../../types';
 import ValidationMessage from '../common/ValidationMessage';
 
 interface Props {
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
   projects: Array<{ key: string; name: string }>;
@@ -19,7 +19,7 @@ interface SearchResponse {
   error?: string;
 }
 
-function isValid(d: SQADuplicateSearchData): boolean {
+function isValid(d: SoftwareDuplicateSearchData): boolean {
   if (!d.searchPerformed) return false;
   if (!d.outcome) return false;
   if (d.outcome === 'open_match') return false; // blocks creation
@@ -44,7 +44,7 @@ const StepDuplicateSearch: React.FC<Props> = ({ bugData, onChange, onValidate })
     onValidate(isValid(d));
   }, [d]);
 
-  function updateDupData(patch: Partial<SQADuplicateSearchData>) {
+  function updateDupData(patch: Partial<SoftwareDuplicateSearchData>) {
     onChange({ duplicateSearch: { ...d, ...patch } });
   }
 

@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import type { SQABugData, AppConfig, SQAEnvironmentData } from '../../types';
+﻿import React, { useEffect, useState } from 'react';
+import type { SoftwareBugData, AppConfig, SoftwareEnvironmentData } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
 
 interface Props {
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
 }
 
-function validate(d: SQAEnvironmentData): string | null {
+function validate(d: SoftwareEnvironmentData): string | null {
   const hasUnknownReason = d.unknownReason.trim().length > 0;
   if (!d.softwareVersion.trim() && !hasUnknownReason)
     return 'Software version is required. If unknown, fill in the "Unknown – reason" field.';
@@ -35,7 +35,7 @@ const Step2Environment: React.FC<Props> = ({ bugData, onChange, onValidate }) =>
 
   useEffect(() => { onValidate(!error); }, [error]);
 
-  function update(patch: Partial<SQAEnvironmentData>) {
+  function update(patch: Partial<SoftwareEnvironmentData>) {
     onChange({ environment: { ...d, ...patch } });
     setTouched(true);
   }

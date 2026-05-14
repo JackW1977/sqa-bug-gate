@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import type { SQABugData, AppConfig, SQAJiraFieldsData } from '../../types';
+﻿import React, { useEffect, useState } from 'react';
+import type { SoftwareBugData, AppConfig, SoftwareJiraFieldsData } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
 
@@ -7,8 +7,8 @@ export interface VersionOption { id: string; name: string; released?: boolean; }
 export interface SprintOption { id: string; name: string; state: string; }
 
 interface Props {
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
   versions: VersionOption[];
@@ -17,7 +17,7 @@ interface Props {
   metaLoading: boolean;
 }
 
-function validate(d: SQAJiraFieldsData): string | null {
+function validate(d: SoftwareJiraFieldsData): string | null {
   if (!d.coreTeam) return 'Core Team is required — it is a mandatory field in the Jira issue form.';
   return null;
 }
@@ -65,7 +65,7 @@ const Step10JiraFields: React.FC<Props> = ({
 
   useEffect(() => { onValidate(!error); }, [error]);
 
-  function update(patch: Partial<SQAJiraFieldsData>) {
+  function update(patch: Partial<SoftwareJiraFieldsData>) {
     onChange({ jiraFields: { ...d, ...patch } });
     setTouched(true);
   }

@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import type { SQABugData, AppConfig, SQAImpactData, WorkaroundPracticality, OccurrenceEstimate } from '../../types';
+﻿import React, { useEffect, useState } from 'react';
+import type { SoftwareBugData, AppConfig, SoftwareImpactData, WorkaroundPracticality, OccurrenceEstimate } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
 
 interface Props {
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
 }
 
-function validate(d: SQAImpactData): string | null {
+function validate(d: SoftwareImpactData): string | null {
   if (!d.userWorkflowImpact.trim()) return 'Describe at least one concrete user or workflow effect.';
   if (!d.workaroundPracticality && !d.workaroundDescription.trim())
     return 'Workaround information is required — describe the workaround or select "N/A (no workaround)".';
@@ -30,14 +30,14 @@ const Step6Impact: React.FC<Props> = ({ bugData, onChange, onValidate }) => {
 
   useEffect(() => { onValidate(!error); }, [error]);
 
-  function update(patch: Partial<SQAImpactData>) {
+  function update(patch: Partial<SoftwareImpactData>) {
     onChange({ impact: { ...d, ...patch } });
     setTouched(true);
   }
 
   return (
     <div>
-      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>4 — Impact (SQA View)</h3>
+      <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>4 — Impact (Software View)</h3>
       <p style={{ margin: '0 0 16px', color: '#5E6C84', fontSize: '13px' }}>
         Describe impact in user and workflow terms. The goal is to help triage understand urgency, not to assign priority.
       </p>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { invoke } from '@forge/bridge';
 import type { AppConfig } from '../../types';
 
@@ -99,7 +99,7 @@ const GleanButton: React.FC<Props> = ({ value, onAccept, fieldContext, config })
       <button
         style={smallBtn('#EAE6FF', '#5243AA')}
         onClick={handleRephrase}
-        title="Use Glean AI to rephrase this field for SQA clarity"
+        title="Use Glean AI to rephrase this field for Software clarity"
       >
         ✨ Rephrase with Glean
       </button>

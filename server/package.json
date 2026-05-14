@@ -1,5 +1,5 @@
-{
-  "name": "sqa-bug-gate-server",
+﻿{
+  "name": "Software-bug-gate-server",
   "private": true,
   "version": "1.0.0",
   "scripts": {

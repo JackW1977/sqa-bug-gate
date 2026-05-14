@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { invoke, view } from '@forge/bridge';
 import ChecklistPanel from './components/ChecklistPanel';
 
@@ -59,7 +59,7 @@ const App: React.FC = () => {
   if (loading) {
     return (
       <div style={{ padding: '16px', color: '#5E6C84', fontSize: '13px' }}>
-        Loading SQA gate status…
+        Loading Software gate status…
       </div>
     );
   }

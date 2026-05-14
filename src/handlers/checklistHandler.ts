@@ -1,7 +1,7 @@
-import { runChecklist } from '../utils/validator';
+﻿import { runChecklist } from '../utils/validator';
 import { getGateState, saveGateState } from './bugHandler';
 import { recordChecklistResult, recordMissingInfo } from '../utils/metrics';
-import type { ValidationResult, IssueGateState } from '../utils/sqaInstructionModel';
+import type { ValidationResult, IssueGateState } from '../utils/SoftwareInstructionModel';
 
 export interface GetChecklistStatusPayload {
   issueKey: string;
@@ -27,7 +27,7 @@ export async function getChecklistStatus(
   }
 
   // Re-run checklist to get fresh result from current stored data
-  const freshResult = runChecklist(state.sqaData);
+  const freshResult = runChecklist(state.SoftwareData);
   const changed =
     freshResult.passed !== state.validationResult.passed ||
     freshResult.items.some(

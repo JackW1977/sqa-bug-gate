@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import type { SQABugData, AppConfig, SQAEvidenceData } from '../../types';
+﻿import React, { useEffect, useState } from 'react';
+import type { SoftwareBugData, AppConfig, SoftwareEvidenceData } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
 import GleanButton from '../common/GleanButton';
 
 interface Props {
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
 }
 
-function validate(d: SQAEvidenceData): string | null {
+function validate(d: SoftwareEvidenceData): string | null {
   const has = d.screenshotReferences.trim() || d.videoReferences.trim() ||
     d.logDetails.trim() || d.testCaseIds.trim();
   if (!has) return 'At least one evidence reference is required.';
@@ -30,7 +30,7 @@ const Step7Evidence: React.FC<Props> = ({ bugData, onChange, onValidate, config 
 
   useEffect(() => { onValidate(!error); }, [error]);
 
-  function update(patch: Partial<SQAEvidenceData>) {
+  function update(patch: Partial<SoftwareEvidenceData>) {
     onChange({ evidence: { ...d, ...patch } });
     setTouched(true);
   }

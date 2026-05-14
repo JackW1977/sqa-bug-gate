@@ -1,8 +1,8 @@
-import { storageGet, storageSet } from './storage';
-import type { MetricRecord, MetricType, ValidationResult } from './sqaInstructionModel';
+﻿import { storageGet, storageSet } from './storage';
+import type { MetricRecord, MetricType, ValidationResult } from './SoftwareInstructionModel';
 
-const METRICS_PREFIX = 'sqa:metric:';
-const METRICS_INDEX_KEY = 'sqa:metrics:index';
+const METRICS_PREFIX = 'Software:metric:';
+const METRICS_INDEX_KEY = 'Software:metrics:index';
 
 async function appendMetricKey(key: string): Promise<void> {
   const index = (await storageGet<string[]>(METRICS_INDEX_KEY)) ?? [];
@@ -15,7 +15,7 @@ async function persistMetric(record: MetricRecord): Promise<void> {
   const key = `${METRICS_PREFIX}${record.issueKey}:${Date.now()}`;
   await storageSet(key, record);
   await appendMetricKey(key);
-  console.log('[SQA Metrics]', JSON.stringify(record));
+  console.log('[Software Metrics]', JSON.stringify(record));
 }
 
 // ─── Public metric recorders ─────────────────────────────────────────────────

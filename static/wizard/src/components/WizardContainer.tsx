@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { invoke } from '@forge/bridge';
-import type { AppConfig, SQABugData } from '../types';
+import type { AppConfig, SoftwareBugData } from '../types';
 import { INITIAL_BUG_DATA, WIZARD_STEPS } from '../types';
 import WizardProgress from './WizardProgress';
 import StepNavigation from './common/StepNavigation';
@@ -22,7 +22,7 @@ interface WizardContainerProps {
 
 const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [bugData, setBugData] = useState<SQABugData>({
+  const [bugData, setBugData] = useState<SoftwareBugData>({
     ...INITIAL_BUG_DATA,
     projectKey: config.defaultProject ?? config.governedProjects[0] ?? '',
   });
@@ -35,7 +35,7 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
   const steps = WIZARD_STEPS;
   const currentStep = steps[currentIndex];
 
-  function updateBugData(patch: Partial<SQABugData>) {
+  function updateBugData(patch: Partial<SoftwareBugData>) {
     setBugData((prev) => ({ ...prev, ...patch }));
   }
 
@@ -75,9 +75,9 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
     return (
       <div style={{ padding: '32px', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
-        <h2 style={{ color: '#006644' }}>SQA Bug Created</h2>
+        <h2 style={{ color: '#006644' }}>Software Bug Created</h2>
         <p style={{ color: '#344563', fontSize: '16px' }}>
-          <strong>{submittedKey}</strong> has been created and passes the SQA gate.
+          <strong>{submittedKey}</strong> has been created and passes the Software gate.
         </p>
         {submittedUrl && (
           <a
@@ -132,9 +132,9 @@ const WizardContainer: React.FC<WizardContainerProps> = ({ config, projects }) =
 
   return (
     <div style={{ maxWidth: '860px', margin: '0 auto', padding: '24px 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
-      <h2 style={{ margin: '0 0 4px', color: '#172B4D' }}>New SQA Bug</h2>
+      <h2 style={{ margin: '0 0 4px', color: '#172B4D' }}>New Software Bug</h2>
       <p style={{ margin: '0 0 20px', color: '#5E6C84', fontSize: '13px' }}>
-        Noah Medical SQA Bug Report Quality Gate — all mandatory sections must pass before submission.
+        Noah Medical Software Bug Report Quality Gate — all mandatory sections must pass before submission.
       </p>
 
       <WizardProgress steps={steps} currentIndex={currentIndex} onNavigate={setCurrentIndex} />

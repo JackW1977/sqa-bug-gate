@@ -1,17 +1,17 @@
-import type { SQABugData, SQADuplicateSearchData, DuplicateOutcome } from '../utils/sqaInstructionModel';
+﻿import type { SoftwareBugData, SoftwareDuplicateSearchData, DuplicateOutcome } from '../utils/SoftwareInstructionModel';
 import { performDuplicateSearch } from '../utils/duplicateSearch';
 import { getAppConfig } from '../utils/config';
 import { recordDuplicatePrevented } from '../utils/metrics';
 import { getGateState, saveGateState } from './bugHandler';
 
 export interface SearchDuplicatesPayload {
-  bugData: SQABugData;
+  bugData: SoftwareBugData;
 }
 
 export interface SearchDuplicatesResult {
   success: boolean;
-  openResults: SQADuplicateSearchData['results'];
-  closedResults: SQADuplicateSearchData['results'];
+  openResults: SoftwareDuplicateSearchData['results'];
+  closedResults: SoftwareDuplicateSearchData['results'];
   openJql: string;
   closedJql: string;
   jiraSiteUrl: string;
@@ -67,8 +67,8 @@ export async function saveDuplicateOutcome(
     return { success: false, error: `No gate state found for ${issueKey}` };
   }
 
-  state.sqaData.duplicateSearch = {
-    ...state.sqaData.duplicateSearch,
+  state.SoftwareData.duplicateSearch = {
+    ...state.SoftwareData.duplicateSearch,
     searchPerformed: true,
     outcome,
     linkedIssueKeys,

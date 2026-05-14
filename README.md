@@ -1,6 +1,6 @@
-# SQA Bug Gate — Jira Forge App
+﻿# Software Bug Gate — Jira Forge App
 
-A Jira Cloud Forge app that enforces Noah Medical's **SQA Instruction for Improving Software Bug Report Quality** for all SQA-created Bug issues.
+A Jira Cloud Forge app that enforces Noah Medical's **Software Instruction for Improving Software Bug Report Quality** for all Software-created Bug issues.
 
 ---
 
@@ -8,11 +8,11 @@ A Jira Cloud Forge app that enforces Noah Medical's **SQA Instruction for Improv
 
 | Module | Where | What it enforces |
 |--------|-------|-----------------|
-| **New SQA Bug** wizard | Jira top nav → Apps | Guided 12-step form covering all 9 mandatory SQA sections + duplicate search |
-| **SQA Gate** issue panel | Every Bug issue sidebar | Live checklist status (PASS / FAIL) with per-item breakdown |
+| **New Software Bug** wizard | Jira top nav → Apps | Guided 12-step form covering all 9 mandatory Software sections + duplicate search |
+| **Software Gate** issue panel | Every Bug issue sidebar | Live checklist status (PASS / FAIL) with per-item breakdown |
 | **Workflow Validator** | Jira workflow admin | Blocks transition to "Ready for Triage" if checklist fails or duplicate search not resolved |
 
-### SQA Checklist (9 items)
+### Software Checklist (9 items)
 
 1. Summary — `[Category]-[Sub-Category]: user-visible problem + when/condition`
 2. Environment — version, branch, hardware, mode (or "Unknown – reason")
@@ -47,10 +47,10 @@ JiraBugCreator/
 ├── src/
 │   ├── index.ts              # Resolver entry point + workflow validator
 │   ├── utils/
-│   │   ├── sqaInstructionModel.ts   # All TypeScript types
+│   │   ├── SoftwareInstructionModel.ts   # All TypeScript types
 │   │   ├── config.ts                # App configuration (storage-backed)
 │   │   ├── jiraClient.ts            # @forge/api Jira REST wrappers
-│   │   ├── validator.ts             # SQA checklist validation logic
+│   │   ├── validator.ts             # Software checklist validation logic
 │   │   ├── duplicateSearch.ts       # JQL building + search execution
 │   │   └── metrics.ts               # Metrics recording
 │   └── handlers/
@@ -60,7 +60,7 @@ JiraBugCreator/
 │       ├── configHandler.ts         # getConfig, updateConfig, listProjects
 │       └── workflowValidator.ts     # handleWorkflowValidation
 ├── static/
-│   ├── wizard/               # "New SQA Bug" Custom UI React app
+│   ├── wizard/               # "New Software Bug" Custom UI React app
 │   └── panel/                # Issue panel Custom UI React app
 └── tests/
     ├── validator.test.ts
@@ -157,13 +157,13 @@ By default the gate applies to **all projects**. To restrict it:
 
 ```ts
 // In config.ts → DEFAULT_CONFIG
-governedProjects: ['SQA', 'NOAM', 'NOVA'],
+governedProjects: ['Software', 'NOAM', 'NOVA'],
 ```
 
 Or call the resolver at runtime:
 
 ```ts
-invoke('updateConfig', { governedProjects: ['SQA', 'NOVA'] });
+invoke('updateConfig', { governedProjects: ['Software', 'NOVA'] });
 ```
 
 ### Governed issue types
@@ -204,24 +204,24 @@ To update, edit the array and redeploy, or push updated config via `updateConfig
 2. Edit the workflow used by Bug issues.
 3. Select the transition that leads to your gated status (e.g. "Ready for Triage").
 4. Click **Validators → Add Validator**.
-5. Select **Forge Validator** and choose **SQA Bug Gate – sqa-workflow-validator**.
+5. Select **Forge Validator** and choose **Software Bug Gate – Software-workflow-validator**.
 6. Publish the workflow.
 
 ---
 
-## How SQA engineers use the app
+## How Software engineers use the app
 
-### Creating a new SQA bug
+### Creating a new Software bug
 
-1. In Jira, click **Apps** in the top navigation → **New SQA Bug**.
+1. In Jira, click **Apps** in the top navigation → **New Software Bug**.
 2. Complete all 12 wizard steps (Steps 1–9 are mandatory; Traceability and Classification are optional).
 3. On the **Duplicate Search** step, click **Run Duplicate Search** and select an outcome.
-4. On the **Review & Submit** step, confirm all checklist items pass, then click **Create SQA Bug in Jira**.
+4. On the **Review & Submit** step, confirm all checklist items pass, then click **Create Software Bug in Jira**.
 5. After creation, attach actual log files, screenshots, and videos to the new Jira issue.
 
 ### Checking an existing bug's gate status
 
-Open any Bug issue → look at the **SQA Gate Status** panel in the right sidebar.
+Open any Bug issue → look at the **Software Gate Status** panel in the right sidebar.
 
 - **PASSED ✓** — all 9 checklist items pass; the bug can be transitioned to "Ready for Triage".
 - **FAILED ✗** — failing items are listed with specific guidance on how to fix them.
@@ -230,11 +230,11 @@ Click **↻ Refresh** to recompute after editing the issue.
 
 ### Workflow gate behaviour
 
-When an SQA engineer or developer tries to transition a Bug to "Ready for Triage":
+When an Software engineer or developer tries to transition a Bug to "Ready for Triage":
 
-- If the SQA checklist **passes** → transition is allowed.
+- If the Software checklist **passes** → transition is allowed.
 - If the checklist **fails** → transition is blocked with a message listing every failing item.
-- If no SQA data exists (bug not created via the wizard) → transition is blocked with instructions.
+- If no Software data exists (bug not created via the wizard) → transition is blocked with instructions.
 - If a **duplicate open bug** was found during the duplicate search → transition is blocked; the engineer must add evidence to the existing bug instead.
 
 ---
@@ -264,7 +264,7 @@ const metrics = await invoke('getMetrics', { limit: 100 });
 | `read:jira-work` | Read issues, projects, workflow status |
 | `write:jira-work` | Create issues, add issue links |
 | `read:jira-user` | Read current user context |
-| `storage:app` | Persist SQA gate state and config |
+| `storage:app` | Persist Software gate state and config |
 
 ---
 
@@ -272,4 +272,4 @@ const metrics = await invoke('getMetrics', { limit: 100 });
 
 - All Forge function calls are authenticated by Atlassian; no external server is involved.
 - The app uses `api.asApp()` for all Jira REST calls, so it acts with the app's installed permissions.
-- SQA gate state (bug data + validation result) is stored in Forge storage scoped to this app's installation.
+- Software gate state (bug data + validation result) is stored in Forge storage scoped to this app's installation.

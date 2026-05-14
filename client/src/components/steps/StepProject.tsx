@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
-import type { SQABugData, AppConfig } from '../../types';
+﻿import React, { useEffect } from 'react';
+import type { SoftwareBugData, AppConfig } from '../../types';
 import FormField from '../common/FormField';
 
 interface Props {
   projects: Array<{ key: string; name: string }>;
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
 }
@@ -23,7 +23,7 @@ const StepProject: React.FC<Props> = ({ projects, bugData, onChange, onValidate,
     <div>
       <h3 style={{ margin: '0 0 8px', color: '#172B4D' }}>Select Project</h3>
       <p style={{ margin: '0 0 16px', color: '#5E6C84', fontSize: '13px' }}>
-        Choose the Jira project where this SQA bug will be created.
+        Choose the Jira project where this Software bug will be created.
       </p>
 
       <FormField label="Jira Project" required>

@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
-import type { SQABugData, AppConfig, ChecklistItem } from '../../types';
+﻿import React, { useMemo } from 'react';
+import type { SoftwareBugData, AppConfig, ChecklistItem } from '../../types';
 import ValidationMessage from '../common/ValidationMessage';
 
 interface Props {
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
   isSubmitting: boolean;
@@ -13,7 +13,7 @@ interface Props {
 
 // ── Client-side checklist mirrors backend validator.ts ──────────────────────
 
-function clientChecklist(data: SQABugData): ChecklistItem[] {
+function clientChecklist(data: SoftwareBugData): ChecklistItem[] {
   const items: ChecklistItem[] = [];
 
   const s = data.summary;
@@ -146,7 +146,7 @@ const StepChecklistReview: React.FC<Props> = ({ bugData, isSubmitting, onSubmit,
       {/* ── Checklist ── */}
       <div style={{ border: '1px solid #DFE1E6', borderRadius: '4px', overflow: 'hidden', marginBottom: '20px' }}>
         <div style={{ background: '#F4F5F7', padding: '10px 16px', fontWeight: 700, fontSize: '14px', borderBottom: '2px solid #DFE1E6' }}>
-          SQA Pre-Submit Checklist —{' '}
+          Software Pre-Submit Checklist —{' '}
           {allPass
             ? <span style={{ color: '#006644' }}>PASSED ✓</span>
             : <span style={{ color: '#DE350B' }}>FAILED ✗ ({items.filter(i => !i.passed).length} items)</span>
@@ -238,7 +238,7 @@ const StepChecklistReview: React.FC<Props> = ({ bugData, isSubmitting, onSubmit,
             border: 'none', borderRadius: '4px', cursor: allPass ? 'pointer' : 'not-allowed',
           }}
         >
-          {isSubmitting ? '⏳ Creating Bug…' : '✓ Create SQA Bug in Jira'}
+          {isSubmitting ? '⏳ Creating Bug…' : '✓ Create Software Bug in Jira'}
         </button>
       </div>
     </div>

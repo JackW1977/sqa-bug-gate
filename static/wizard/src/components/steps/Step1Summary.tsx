@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import type { SQABugData, AppConfig, CategoryConfig, SQASummaryData } from '../../types';
+﻿import React, { useEffect, useState } from 'react';
+import type { SoftwareBugData, AppConfig, CategoryConfig, SoftwareSummaryData } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
 import GleanButton from '../common/GleanButton';
 
 interface Props {
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
 }
 
-function validate(d: SQASummaryData): string | null {
+function validate(d: SoftwareSummaryData): string | null {
   if (!d.category) return 'Select a category.';
   if (!d.subCategory) return 'Select a sub-category.';
   if (!d.problemStatement.trim() || d.problemStatement.trim().length < 10)
@@ -36,7 +36,7 @@ const Step1Summary: React.FC<Props> = ({ bugData, onChange, onValidate, config }
 
   useEffect(() => { onValidate(!error); }, [error]);
 
-  function update(patch: Partial<SQASummaryData>) {
+  function update(patch: Partial<SoftwareSummaryData>) {
     onChange({ summary: { ...d, ...patch } });
     setTouched(true);
   }
@@ -100,7 +100,7 @@ const Step1Summary: React.FC<Props> = ({ bugData, onChange, onValidate, config }
           onChange={(e) => update({ problemStatement: e.target.value })}
           style={inp}
         />
-        <GleanButton value={d.problemStatement} onAccept={(v) => update({ problemStatement: v })} fieldContext="user-visible problem statement for a medical device SQA bug report" config={config} />
+        <GleanButton value={d.problemStatement} onAccept={(v) => update({ problemStatement: v })} fieldContext="user-visible problem statement for a medical device Software bug report" config={config} />
       </FormField>
 
       <FormField

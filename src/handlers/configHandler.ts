@@ -1,6 +1,6 @@
-import { getAppConfig, saveAppConfig, browseUrl, boardUrl } from '../utils/config';
+﻿import { getAppConfig, saveAppConfig, browseUrl, boardUrl } from '../utils/config';
 import { getProjects, listProjectVersions, listProjectComponents, listProjectSprints } from '../utils/jiraClient';
-import type { AppConfig } from '../utils/sqaInstructionModel';
+import type { AppConfig } from '../utils/SoftwareInstructionModel';
 
 export async function getConfig(): Promise<{
   success: boolean;

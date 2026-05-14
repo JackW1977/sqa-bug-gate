@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import type { SQABugData, AppConfig, SQAExpectedActualData } from '../../types';
+﻿import React, { useEffect, useState } from 'react';
+import type { SoftwareBugData, AppConfig, SoftwareExpectedActualData } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
 import GleanButton from '../common/GleanButton';
 
 interface Props {
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
 }
 
 const ROOT_CAUSE = /\b(race condition|memory leak|null pointer|db issue|database|server error|timeout|crash in|exception in)\b/i;
 
-function validate(d: SQAExpectedActualData): string | null {
+function validate(d: SoftwareExpectedActualData): string | null {
   if (!d.expectedBehavior.trim()) return 'Expected behavior is required.';
   if (!d.actualBehavior.trim()) return 'Actual behavior is required.';
   const norm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
@@ -36,7 +36,7 @@ const Step5ExpectedActual: React.FC<Props> = ({ bugData, onChange, onValidate, c
 
   useEffect(() => { onValidate(!error); }, [error]);
 
-  function update(patch: Partial<SQAExpectedActualData>) {
+  function update(patch: Partial<SoftwareExpectedActualData>) {
     onChange({ expectedActual: { ...d, ...patch } });
     setTouched(true);
   }

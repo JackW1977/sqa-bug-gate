@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import GateStatus from './GateStatus';
 import ChecklistItem from './ChecklistItem';
 
@@ -48,7 +48,7 @@ const ChecklistPanel: React.FC<ChecklistPanelProps> = ({
     return (
       <div style={{ ...fontBase, padding: '12px' }}>
         <div style={{ color: '#DE350B', marginBottom: '8px' }}>
-          {status?.error ?? 'Failed to load SQA gate status.'}
+          {status?.error ?? 'Failed to load Software gate status.'}
         </div>
         <button style={btnStyle} onClick={onRefresh} disabled={refreshing}>
           {refreshing ? 'Refreshing…' : '↻ Retry'}
@@ -64,12 +64,12 @@ const ChecklistPanel: React.FC<ChecklistPanelProps> = ({
           background: '#FFFAE6', border: '1px solid #FF8B00', borderRadius: '4px',
           padding: '10px 14px', marginBottom: '12px', color: '#974F0C',
         }}>
-          <strong>No SQA data found</strong> for <strong>{issueKey}</strong>.
+          <strong>No Software data found</strong> for <strong>{issueKey}</strong>.
           <br />
-          This bug was not created via the SQA Bug Gate wizard, or SQA data was not saved.
+          This bug was not created via the Software Bug Gate wizard, or Software data was not saved.
         </div>
         <p style={{ margin: '0 0 8px', color: '#5E6C84', fontSize: '12px' }}>
-          To pass the SQA gate, bugs should be created using the <strong>New SQA Bug</strong> wizard
+          To pass the Software gate, bugs should be created using the <strong>New Software Bug</strong> wizard
           (available from the Jira top navigation).
         </p>
         <button style={btnStyle} onClick={onRefresh} disabled={refreshing}>
@@ -117,7 +117,7 @@ const ChecklistPanel: React.FC<ChecklistPanelProps> = ({
           marginTop: '12px', padding: '10px 14px', background: '#DEEBFF',
           border: '1px solid #B3D4FF', borderRadius: '4px', fontSize: '12px', color: '#0747A6',
         }}>
-          ℹ️ Fix the failing items above, then use <strong>New SQA Bug</strong> (wizard) to update
+          ℹ️ Fix the failing items above, then use <strong>New Software Bug</strong> (wizard) to update
           or recreate this bug. The workflow validator will block transition to "Ready for Triage"
           until all items pass.
         </div>

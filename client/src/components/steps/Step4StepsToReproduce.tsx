@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import type { SQABugData, AppConfig, SQAStepsToReproduceData } from '../../types';
+﻿import React, { useEffect, useState } from 'react';
+import type { SoftwareBugData, AppConfig, SoftwareStepsToReproduceData } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
 
 interface Props {
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
 }
 
-function validate(d: SQAStepsToReproduceData): string | null {
+function validate(d: SoftwareStepsToReproduceData): string | null {
   if (!d.initialState.trim()) return 'Initial state is required.';
   const nonEmpty = d.steps.filter((s) => s.trim());
   if (nonEmpty.length < 2) return 'Provide at least 2 numbered steps.';
@@ -29,7 +29,7 @@ const Step4StepsToReproduce: React.FC<Props> = ({ bugData, onChange, onValidate 
 
   useEffect(() => { onValidate(!error); }, [error]);
 
-  function update(patch: Partial<SQAStepsToReproduceData>) {
+  function update(patch: Partial<SoftwareStepsToReproduceData>) {
     onChange({ stepsToReproduce: { ...d, ...patch } });
     setTouched(true);
   }

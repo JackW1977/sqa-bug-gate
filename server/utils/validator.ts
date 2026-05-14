@@ -1,17 +1,17 @@
-import type {
-  SQABugData,
-  SQASummaryData,
-  SQAEnvironmentData,
-  SQAPreconditionsData,
-  SQAStepsToReproduceData,
-  SQAExpectedActualData,
-  SQAImpactData,
-  SQAEvidenceData,
-  SQADuplicateSearchData,
+﻿import type {
+  SoftwareBugData,
+  SoftwareSummaryData,
+  SoftwareEnvironmentData,
+  SoftwarePreconditionsData,
+  SoftwareStepsToReproduceData,
+  SoftwareExpectedActualData,
+  SoftwareImpactData,
+  SoftwareEvidenceData,
+  SoftwareDuplicateSearchData,
   ChecklistItem,
   ChecklistItemKey,
   ValidationResult,
-} from './sqaInstructionModel';
+} from './SoftwareInstructionModel';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -45,7 +45,7 @@ const ROOT_CAUSE_PATTERNS =
 
 // ─── Section validators ───────────────────────────────────────────────────────
 
-export function validateSummary(data: SQASummaryData): ChecklistItem {
+export function validateSummary(data: SoftwareSummaryData): ChecklistItem {
   const label = 'Summary — category, sub-category, and user-visible problem';
 
   if (!data.category) {
@@ -91,10 +91,10 @@ export function validateSummary(data: SQASummaryData): ChecklistItem {
   return item('summary', label, true);
 }
 
-export function validateEnvironment(data: SQAEnvironmentData): ChecklistItem {
+export function validateEnvironment(data: SoftwareEnvironmentData): ChecklistItem {
   const label = 'Environment — version, branch, hardware, mode';
 
-  const requiredFields: Array<[keyof SQAEnvironmentData, string]> = [
+  const requiredFields: Array<[keyof SoftwareEnvironmentData, string]> = [
     ['softwareVersion', 'Software version / build ID'],
     ['branchRelease', 'Branch / release line'],
     ['hardwareConfig', 'Hardware configuration'],
@@ -119,7 +119,7 @@ export function validateEnvironment(data: SQAEnvironmentData): ChecklistItem {
   return item('environment', label, true);
 }
 
-export function validatePreconditions(data: SQAPreconditionsData): ChecklistItem {
+export function validatePreconditions(data: SoftwarePreconditionsData): ChecklistItem {
   const label = 'Preconditions — documented or explicitly none';
 
   if (!data.noPreconditions && !data.preconditions.trim()) {
@@ -142,7 +142,7 @@ export function validatePreconditions(data: SQAPreconditionsData): ChecklistItem
   return item('preconditions', label, true);
 }
 
-export function validateStepsToReproduce(data: SQAStepsToReproduceData): ChecklistItem {
+export function validateStepsToReproduce(data: SoftwareStepsToReproduceData): ChecklistItem {
   const label = 'Steps to reproduce — numbered, concrete, from initial state';
 
   if (!data.initialState.trim()) {
@@ -166,7 +166,7 @@ export function validateStepsToReproduce(data: SQAStepsToReproduceData): Checkli
   return item('stepsToReproduce', label, true);
 }
 
-export function validateExpectedActual(data: SQAExpectedActualData): ChecklistItem {
+export function validateExpectedActual(data: SoftwareExpectedActualData): ChecklistItem {
   const label = 'Expected vs actual behavior — clearly differentiated';
 
   if (!data.expectedBehavior.trim()) {
@@ -199,7 +199,7 @@ export function validateExpectedActual(data: SQAExpectedActualData): ChecklistIt
   return item('expectedActual', label, true);
 }
 
-export function validateImpact(data: SQAImpactData): ChecklistItem {
+export function validateImpact(data: SoftwareImpactData): ChecklistItem {
   const label = 'Impact — user/workflow effect, workaround, frequency';
 
   if (!data.userWorkflowImpact.trim()) {
@@ -220,7 +220,7 @@ export function validateImpact(data: SQAImpactData): ChecklistItem {
   return item('impact', label, true);
 }
 
-export function validateEvidence(data: SQAEvidenceData): ChecklistItem {
+export function validateEvidence(data: SoftwareEvidenceData): ChecklistItem {
   const label = 'Evidence — logs, screenshots, test IDs referenced';
 
   const hasEvidence =
@@ -241,7 +241,7 @@ export function validateEvidence(data: SQAEvidenceData): ChecklistItem {
   return item('evidence', label, true);
 }
 
-export function validateDuplicateSearch(data: SQADuplicateSearchData): ChecklistItem {
+export function validateDuplicateSearch(data: SoftwareDuplicateSearchData): ChecklistItem {
   const label = 'Duplicate search — performed and outcome resolved';
 
   if (!data.searchPerformed) {
@@ -268,7 +268,7 @@ export function validateDuplicateSearch(data: SQADuplicateSearchData): Checklist
 }
 
 export function validateClassification(
-  data: SQABugData['classification'],
+  data: SoftwareBugData['classification'],
 ): ChecklistItem {
   const label = 'Classification — impact and priority suggestion consistent with description';
   // Classification is optional but if impact is Blocker, rationale should exist
@@ -288,7 +288,7 @@ export function validateClassification(
 
 // ─── Full checklist ───────────────────────────────────────────────────────────
 
-export function runChecklist(data: SQABugData): ValidationResult {
+export function runChecklist(data: SoftwareBugData): ValidationResult {
   const items: ChecklistItem[] = [
     validateSummary(data.summary),
     validateEnvironment(data.environment),
@@ -307,7 +307,7 @@ export function runChecklist(data: SQABugData): ValidationResult {
 
 // ─── Assembled summary string ─────────────────────────────────────────────────
 
-export function assembleSummary(data: SQASummaryData): string {
+export function assembleSummary(data: SoftwareSummaryData): string {
   return `[${data.category}]-[${data.subCategory}]: ${data.problemStatement} ${data.conditionClause}`.trim();
 }
 

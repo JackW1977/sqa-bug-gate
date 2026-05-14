@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { api } from '../api';
 import type { AppConfig } from '../types';
 
@@ -165,7 +165,7 @@ const AdminConfig: React.FC<Props> = ({ config }) => {
       {/* ── Page header ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ margin: '0 0 4px', color: '#172B4D' }}>⚙ SQA Bug Gate — Settings</h2>
+          <h2 style={{ margin: '0 0 4px', color: '#172B4D' }}>⚙ Software Bug Gate — Settings</h2>
           <p style={{ margin: 0, fontSize: '13px', color: '#5E6C84' }}>
             Configure gate behaviour, governed projects, and AI integrations.
           </p>

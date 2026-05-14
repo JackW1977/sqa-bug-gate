@@ -1,7 +1,7 @@
-import { storageGet, storageSet } from './storage';
-import type { AppConfig, CategoryConfig } from './sqaInstructionModel';
+﻿import { storageGet, storageSet } from './storage';
+import type { AppConfig, CategoryConfig } from './SoftwareInstructionModel';
 
-const CONFIG_STORAGE_KEY = 'sqa:appConfig';
+const CONFIG_STORAGE_KEY = 'Software:appConfig';
 
 export const DEFAULT_CATEGORIES: CategoryConfig[] = [
   {

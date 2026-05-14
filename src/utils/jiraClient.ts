@@ -1,4 +1,4 @@
-import api, { route } from '@forge/api';
+﻿import api, { route } from '@forge/api';
 
 export interface JiraIssuePayload {
   projectKey: string;
@@ -169,7 +169,7 @@ export async function getProjects(): Promise<Array<{ key: string; name: string }
 // ─── Description formatting ──────────────────────────────────────────────────
 
 /**
- * Build a structured plain-text description from all SQA sections.
+ * Build a structured plain-text description from all Software sections.
  * Used as the Jira issue description body.
  */
 export function formatDescription(sections: Record<string, string>): string {

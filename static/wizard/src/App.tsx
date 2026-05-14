@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { invoke, view } from '@forge/bridge';
 import WizardContainer from './components/WizardContainer';
 import AdminConfig from './components/AdminConfig';
@@ -17,7 +17,7 @@ const App: React.FC = () => {
         // Detect whether we're in the admin page or the wizard
         const context = await view.getContext().catch(() => null);
         const moduleKey = (context as { moduleKey?: string } | null)?.moduleKey ?? '';
-        setIsAdmin(moduleKey === 'sqa-admin-config');
+        setIsAdmin(moduleKey === 'Software-admin-config');
 
         const [configRes, projectsRes] = await Promise.all([
           invoke<{ success: boolean; config?: AppConfig; error?: string }>('getConfig'),
@@ -49,7 +49,7 @@ const App: React.FC = () => {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}>
-        <span>Loading SQA Bug Gate…</span>
+        <span>Loading Software Bug Gate…</span>
       </div>
     );
   }
@@ -57,7 +57,7 @@ const App: React.FC = () => {
   if (error || !config) {
     return (
       <div style={{ padding: '24px', color: '#DE350B' }}>
-        <strong>Error loading SQA Bug Gate:</strong> {error}
+        <strong>Error loading Software Bug Gate:</strong> {error}
       </div>
     );
   }

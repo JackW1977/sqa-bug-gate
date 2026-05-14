@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import type { SQABugData, AppConfig, SQAClassificationData, BugType, ImpactCategory, PrioritySuggestion } from '../../types';
+﻿import React, { useEffect, useState } from 'react';
+import type { SoftwareBugData, AppConfig, SoftwareClassificationData, BugType, ImpactCategory, PrioritySuggestion } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
 
 interface Props {
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
 }
 
-function validate(d: SQAClassificationData): string | null {
+function validate(d: SoftwareClassificationData): string | null {
   if (d.impactCategory === 'Blocker' && !d.priorityRationale.trim())
     return 'A Blocker impact category requires a brief priority rationale.';
   return null;
@@ -28,7 +28,7 @@ const Step9Classification: React.FC<Props> = ({ bugData, onChange, onValidate })
 
   useEffect(() => { onValidate(!error); }, [error]);
 
-  function update(patch: Partial<SQAClassificationData>) {
+  function update(patch: Partial<SoftwareClassificationData>) {
     onChange({ classification: { ...d, ...patch } });
     setTouched(true);
   }
@@ -37,14 +37,14 @@ const Step9Classification: React.FC<Props> = ({ bugData, onChange, onValidate })
     <div>
       <h3 style={{ margin: '0 0 4px', color: '#172B4D' }}>6 — Classification Suggestion</h3>
       <p style={{ margin: '0 0 8px', color: '#5E6C84', fontSize: '13px' }}>
-        Optional SQA suggestions only. Final severity and priority are set by triage/product/engineering.
+        Optional Software suggestions only. Final severity and priority are set by triage/product/engineering.
       </p>
 
       <div style={{
         background: '#FFFAE6', border: '1px solid #FF8B00', borderRadius: '4px',
         padding: '10px 14px', marginBottom: '16px', fontSize: '13px', color: '#974F0C',
       }}>
-        ⚠️ <strong>SQA suggestion only.</strong> These fields advise triage — they do not set the official Jira priority or severity.
+        ⚠️ <strong>Software suggestion only.</strong> These fields advise triage — they do not set the official Jira priority or severity.
       </div>
 
       {touched && error && <ValidationMessage>{error}</ValidationMessage>}

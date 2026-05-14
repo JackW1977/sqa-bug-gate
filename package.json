@@ -1,7 +1,7 @@
-{
-  "name": "sqa-bug-gate",
+﻿{
+  "name": "Software-bug-gate",
   "version": "1.0.0",
-  "description": "SQA Bug Gate — Jira Forge app enforcing Noah Medical SQA bug-report quality standards",
+  "description": "Software Bug Gate — Jira Forge app enforcing Noah Medical Software bug-report quality standards",
   "private": true,
   "main": "src/index.ts",
   "scripts": {

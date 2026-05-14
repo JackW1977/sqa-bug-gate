@@ -1,5 +1,5 @@
-import { storageGet, storageSet } from '../utils/storage';
-import type { SQABugData, IssueGateState, SQAJiraFieldsData } from '../utils/sqaInstructionModel';
+﻿import { storageGet, storageSet } from '../utils/storage';
+import type { SoftwareBugData, IssueGateState, SoftwareJiraFieldsData } from '../utils/SoftwareInstructionModel';
 import {
   createJiraIssue,
   addIssueLink,
@@ -10,7 +10,7 @@ import { runChecklist } from '../utils/validator';
 import { recordChecklistResult } from '../utils/metrics';
 import { getAppConfig, browseUrl } from '../utils/config';
 
-const GATE_STATE_PREFIX = 'sqa:gate:';
+const GATE_STATE_PREFIX = 'Software:gate:';
 
 export function gateStateKey(issueKey: string): string {
   return `${GATE_STATE_PREFIX}${issueKey}`;
@@ -18,7 +18,7 @@ export function gateStateKey(issueKey: string): string {
 
 // ─── Assemble Jira description ────────────────────────────────────────────────
 
-function buildDescription(data: SQABugData): string {
+function buildDescription(data: SoftwareBugData): string {
   const env = data.environment;
   const envText = [
     env.softwareVersion && `- Software Version: ${env.softwareVersion}`,
@@ -99,7 +99,7 @@ function buildDescription(data: SQABugData): string {
     cl.impactCategory && `Impact category: ${cl.impactCategory}`,
     cl.prioritySuggestion &&
       `Priority suggestion: ${cl.prioritySuggestion}${cl.priorityRationale ? ` — ${cl.priorityRationale}` : ''}`,
-    '⚠ SQA suggestion only; final severity/priority set by triage/product/engineering.',
+    '⚠ Software suggestion only; final severity/priority set by triage/product/engineering.',
   ]
     .filter(Boolean)
     .join('\n');
@@ -112,11 +112,11 @@ function buildDescription(data: SQABugData): string {
     'Actual Behavior': data.expectedActual.actualBehavior,
   };
   if (data.expectedActual.notes) sections['Notes / Suspected Cause'] = data.expectedActual.notes;
-  sections['Impact (SQA View)'] = impText;
+  sections['Impact (Software View)'] = impText;
   sections['Evidence & Attachments'] = evText;
   if (trText) sections['Traceability'] = trText;
   if (jfParts) sections['Jira Classification Fields'] = jfParts;
-  if (clText) sections['Classification Suggestion (SQA)'] = clText;
+  if (clText) sections['Classification Suggestion (Software)'] = clText;
 
   return formatDescription(sections);
 }
@@ -124,8 +124,8 @@ function buildDescription(data: SQABugData): string {
 // ─── Custom field builder ─────────────────────────────────────────────────────
 
 function buildCustomFields(
-  jf: SQAJiraFieldsData,
-  config: import('../utils/sqaInstructionModel').AppConfig,
+  jf: SoftwareJiraFieldsData,
+  config: import('../utils/SoftwareInstructionModel').AppConfig,
 ): Record<string, unknown> {
   const cf: Record<string, unknown> = {};
   const ids = config.customFieldIds;
@@ -141,7 +141,7 @@ function buildCustomFields(
 // ─── Create Bug ───────────────────────────────────────────────────────────────
 
 export interface CreateBugPayload {
-  bugData: SQABugData;
+  bugData: SoftwareBugData;
 }
 
 export interface CreateBugResult {
@@ -165,7 +165,7 @@ export async function createBug(payload: CreateBugPayload): Promise<CreateBugRes
       success: false,
       validationFailed: true,
       failingItems: validation.items.filter((i) => !i.passed).map((i) => i.message),
-      error: 'SQA checklist has failing items. Fix them before submitting.',
+      error: 'Software checklist has failing items. Fix them before submitting.',
     };
   }
 
@@ -206,7 +206,7 @@ export async function createBug(payload: CreateBugPayload): Promise<CreateBugRes
   const gateState: IssueGateState = {
     issueKey: created.key,
     lastChecked: new Date().toISOString(),
-    sqaData: bugData,
+    SoftwareData: bugData,
     validationResult: validation,
   };
   await storageSet(gateStateKey(created.key), gateState);
@@ -222,7 +222,7 @@ export async function createBug(payload: CreateBugPayload): Promise<CreateBugRes
         await addIssueLink(created.key, linkedKey, 'Relates');
       } catch {
         // Non-fatal: log and continue
-        console.warn(`[SQA] Could not create link from ${created.key} to ${linkedKey}`);
+        console.warn(`[Software] Could not create link from ${created.key} to ${linkedKey}`);
       }
     }
   }

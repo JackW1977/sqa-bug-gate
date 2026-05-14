@@ -1,4 +1,4 @@
-import type { SQABugData, DuplicateSearchResult, AppConfig } from './sqaInstructionModel';
+﻿import type { SoftwareBugData, DuplicateSearchResult, AppConfig } from './SoftwareInstructionModel';
 import { searchIssues } from './jiraClient';
 import { browseUrl } from './config';
 
@@ -23,7 +23,7 @@ export function extractKeywords(text: string): string[] {
     .slice(0, 5);
 }
 
-export function buildOpenDuplicateJQL(data: SQABugData): string {
+export function buildOpenDuplicateJQL(data: SoftwareBugData): string {
   const { category, subCategory, problemStatement, conditionClause } = data.summary;
   const projectClause = data.projectKey ? `project = "${data.projectKey}" AND ` : '';
   const categoryLabel = `[${category}]-[${subCategory}]`;
@@ -40,7 +40,7 @@ export function buildOpenDuplicateJQL(data: SQABugData): string {
   return `${base} AND (${categoryFilter}${keywordFilter}) ORDER BY created DESC`;
 }
 
-export function buildClosedDuplicateJQL(data: SQABugData): string {
+export function buildClosedDuplicateJQL(data: SoftwareBugData): string {
   const { category, subCategory, problemStatement, conditionClause } = data.summary;
   const projectClause = data.projectKey ? `project = "${data.projectKey}" AND ` : '';
   const categoryLabel = `[${category}]-[${subCategory}]`;
@@ -111,7 +111,7 @@ function mapIssue(
 }
 
 export async function performDuplicateSearch(
-  data: SQABugData,
+  data: SoftwareBugData,
   config: AppConfig,
 ): Promise<DuplicateSearchResponse> {
   const openJql = buildOpenDuplicateJQL(data);

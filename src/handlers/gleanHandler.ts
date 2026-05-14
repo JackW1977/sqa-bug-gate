@@ -1,4 +1,4 @@
-import { storage } from '@forge/api';
+﻿import { storage } from '@forge/api';
 
 // ── Token management ──────────────────────────────────────────────────────────
 
@@ -36,8 +36,8 @@ interface RephraseResult {
   error?: string;
 }
 
-const SQA_SYSTEM_PROMPT =
-  'You are an SQA technical writer for a medical device software company. ' +
+const Software_SYSTEM_PROMPT =
+  'You are an Software technical writer for a medical device software company. ' +
   'Your task is to rephrase the provided text to be clear, precise, and professional, ' +
   'suitable for IEC 62304 / ISO 14971 documentation. ' +
   'Preserve all technical details, version numbers, hardware names, error messages, ' +
@@ -64,7 +64,7 @@ export async function rephraseWithGlean({ text, fieldContext }: RephrasePayload)
     };
   }
 
-  const prompt = `${SQA_SYSTEM_PROMPT}\n\nField context: "${fieldContext}"\n\nText to rephrase:\n${text}`;
+  const prompt = `${Software_SYSTEM_PROMPT}\n\nField context: "${fieldContext}"\n\nText to rephrase:\n${text}`;
 
   let response: Response;
   try {

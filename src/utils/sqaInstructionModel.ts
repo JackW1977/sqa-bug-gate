@@ -1,4 +1,4 @@
-// ─── Category / Sub-Category ─────────────────────────────────────────────────
+﻿// ─── Category / Sub-Category ─────────────────────────────────────────────────
 
 export interface SubCategoryConfig {
   value: string;
@@ -11,9 +11,9 @@ export interface CategoryConfig {
   subCategories: SubCategoryConfig[];
 }
 
-// ─── Core SQA Bug Data ───────────────────────────────────────────────────────
+// ─── Core Software Bug Data ───────────────────────────────────────────────────────
 
-export interface SQASummaryData {
+export interface SoftwareSummaryData {
   category: string;
   subCategory: string;
   /** The user-visible symptom description (no root-cause guesses). */
@@ -22,7 +22,7 @@ export interface SQASummaryData {
   conditionClause: string;
 }
 
-export interface SQAEnvironmentData {
+export interface SoftwareEnvironmentData {
   softwareVersion: string;
   branchRelease: string;
   buildNumber: string;
@@ -35,14 +35,14 @@ export interface SQAEnvironmentData {
   unknownReason: string;
 }
 
-export interface SQAPreconditionsData {
+export interface SoftwarePreconditionsData {
   preconditions: string;
   noPreconditions: boolean;
   /** Required when noPreconditions is true. */
   noPreconditionsExplanation: string;
 }
 
-export interface SQAStepsToReproduceData {
+export interface SoftwareStepsToReproduceData {
   initialState: string;
   steps: string[];
   /** e.g. "3/3", "2/10", "Observed once". */
@@ -50,7 +50,7 @@ export interface SQAStepsToReproduceData {
   intermittentNotes: string;
 }
 
-export interface SQAExpectedActualData {
+export interface SoftwareExpectedActualData {
   expectedBehavior: string;
   actualBehavior: string;
   /** Optional — root-cause theories go here, not in expected. */
@@ -60,7 +60,7 @@ export interface SQAExpectedActualData {
 export type WorkaroundPracticality = 'trivial' | 'acceptable' | 'cumbersome' | 'unrealistic' | '';
 export type OccurrenceEstimate = 'remote' | 'occasional' | 'frequent' | '';
 
-export interface SQAImpactData {
+export interface SoftwareImpactData {
   userWorkflowImpact: string;
   /** Optional — describe only when safety is evidently affected. */
   safetyRelevance: string;
@@ -69,7 +69,7 @@ export interface SQAImpactData {
   estimatedOccurrence: OccurrenceEstimate;
 }
 
-export interface SQAEvidenceData {
+export interface SoftwareEvidenceData {
   screenshotReferences: string;
   videoReferences: string;
   /** Tool name, time window, timezone. */
@@ -77,7 +77,7 @@ export interface SQAEvidenceData {
   testCaseIds: string;
 }
 
-export interface SQATraceabilityData {
+export interface SoftwareTraceabilityData {
   requirementIds: string;
   riskItemIds: string;
   relatedJiraKeys: string;
@@ -87,14 +87,14 @@ export type BugType = 'Bug' | 'Improvement' | '';
 export type ImpactCategory = 'Minor' | 'Intermediate' | 'Major' | 'Blocker' | '';
 export type PrioritySuggestion = 'Highest' | 'High' | 'Medium' | 'Low' | '';
 
-export interface SQAClassificationData {
+export interface SoftwareClassificationData {
   type: BugType;
   impactCategory: ImpactCategory;
   prioritySuggestion: PrioritySuggestion;
   priorityRationale: string;
 }
 
-export interface SQAJiraFieldsData {
+export interface SoftwareJiraFieldsData {
   affectsVersions: string[];
   fixVersions: string[];
   components: string[];
@@ -120,7 +120,7 @@ export interface DuplicateSearchResult {
   url?: string;
 }
 
-export interface SQADuplicateSearchData {
+export interface SoftwareDuplicateSearchData {
   searchPerformed: boolean;
   searchQuery: string;
   results: DuplicateSearchResult[];
@@ -129,19 +129,19 @@ export interface SQADuplicateSearchData {
   performedAt?: string;
 }
 
-export interface SQABugData {
+export interface SoftwareBugData {
   projectKey: string;
-  summary: SQASummaryData;
-  environment: SQAEnvironmentData;
-  preconditions: SQAPreconditionsData;
-  stepsToReproduce: SQAStepsToReproduceData;
-  expectedActual: SQAExpectedActualData;
-  impact: SQAImpactData;
-  evidence: SQAEvidenceData;
-  traceability: SQATraceabilityData;
-  classification: SQAClassificationData;
-  jiraFields: SQAJiraFieldsData;
-  duplicateSearch: SQADuplicateSearchData;
+  summary: SoftwareSummaryData;
+  environment: SoftwareEnvironmentData;
+  preconditions: SoftwarePreconditionsData;
+  stepsToReproduce: SoftwareStepsToReproduceData;
+  expectedActual: SoftwareExpectedActualData;
+  impact: SoftwareImpactData;
+  evidence: SoftwareEvidenceData;
+  traceability: SoftwareTraceabilityData;
+  classification: SoftwareClassificationData;
+  jiraFields: SoftwareJiraFieldsData;
+  duplicateSearch: SoftwareDuplicateSearchData;
 }
 
 // ─── Validation / Checklist ──────────────────────────────────────────────────
@@ -174,7 +174,7 @@ export interface ValidationResult {
 export interface IssueGateState {
   issueKey: string;
   lastChecked: string;
-  sqaData: SQABugData;
+  SoftwareData: SoftwareBugData;
   validationResult: ValidationResult;
 }
 
@@ -193,7 +193,7 @@ export interface CustomFieldIds {
 export interface AppConfig {
   /** Atlassian Cloud site base URL, e.g. https://noahmed.atlassian.net */
   jiraSiteUrl: string;
-  /** Jira project keys where the SQA gate is active (empty = all projects). */
+  /** Jira project keys where the Software gate is active (empty = all projects). */
   governedProjects: string[];
   /** Issue types the gate applies to. */
   governedIssueTypes: string[];

@@ -1,7 +1,7 @@
-import { extractKeywords, buildOpenDuplicateJQL, buildClosedDuplicateJQL } from '../src/utils/duplicateSearch';
-import type { SQABugData } from '../src/utils/sqaInstructionModel';
+﻿import { extractKeywords, buildOpenDuplicateJQL, buildClosedDuplicateJQL } from '../src/utils/duplicateSearch';
+import type { SoftwareBugData } from '../src/utils/SoftwareInstructionModel';
 
-function makeData(overrides: Partial<SQABugData['summary']> = {}): SQABugData {
+function makeData(overrides: Partial<SoftwareBugData['summary']> = {}): SoftwareBugData {
   return {
     projectKey: 'PROJ',
     summary: {

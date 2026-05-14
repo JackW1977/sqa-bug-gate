@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
-SQA Bug Gate — Preview Server
+Software Bug Gate — Preview Server
 Serves preview/ as static files AND proxies POST /api/rephrase to the real Glean API.
 
 Setup:
@@ -39,10 +39,10 @@ load_dotenv()
 GLEAN_TOKEN    = os.environ.get("GLEAN_TOKEN", "")
 GLEAN_BASE_URL = os.environ.get("GLEAN_BASE_URL", "")
 
-# ─── SQA system prompt ────────────────────────────────────────────────────────
+# ─── Software system prompt ────────────────────────────────────────────────────────
 
-SQA_SYSTEM_PROMPT = (
-    "You are an SQA technical writer for a medical device software company. "
+Software_SYSTEM_PROMPT = (
+    "You are an Software technical writer for a medical device software company. "
     "Your task is to rephrase the provided text to be clear, precise, and professional, "
     "suitable for IEC 62304 / ISO 14971 documentation. "
     "Preserve all technical details, version numbers, hardware names, error messages, "
@@ -95,7 +95,7 @@ class PreviewHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         prompt = (
-            f'{SQA_SYSTEM_PROMPT}\n\n'
+            f'{Software_SYSTEM_PROMPT}\n\n'
             f'Field context: "{field_context}"\n\n'
             f'Text to rephrase:\n{text}'
         )
@@ -164,10 +164,10 @@ class PreviewHandler(http.server.SimpleHTTPRequestHandler):
 # ─── Entry point ──────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    print(f"[SQA Preview] http://localhost:{PORT}")
+    print(f"[Software Preview] http://localhost:{PORT}")
     if GLEAN_TOKEN:
-        print(f"[SQA Preview] Glean ✓  {GLEAN_BASE_URL}")
+        print(f"[Software Preview] Glean ✓  {GLEAN_BASE_URL}")
     else:
-        print("[SQA Preview] Glean ✗  — add GLEAN_TOKEN + GLEAN_BASE_URL to .env")
+        print("[Software Preview] Glean ✗  — add GLEAN_TOKEN + GLEAN_BASE_URL to .env")
     with http.server.HTTPServer(("", PORT), PreviewHandler) as srv:
         srv.serve_forever()

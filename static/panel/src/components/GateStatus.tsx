@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 interface GateStatusProps {
   passed: boolean;
@@ -9,7 +9,7 @@ const GateStatus: React.FC<GateStatusProps> = ({ passed, lastChecked }) => {
   const bg = passed ? '#E3FCEF' : '#FFEBE6';
   const border = passed ? '#00875A' : '#DE350B';
   const color = passed ? '#006644' : '#BF2600';
-  const label = passed ? '✓ SQA GATE: PASSED' : '✗ SQA GATE: FAILED';
+  const label = passed ? '✓ Software GATE: PASSED' : '✗ Software GATE: FAILED';
 
   return (
     <div style={{

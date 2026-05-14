@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import type { SQABugData, AppConfig, SQAPreconditionsData, SQAStepsToReproduceData } from '../../types';
+﻿import React, { useEffect, useState } from 'react';
+import type { SoftwareBugData, AppConfig, SoftwarePreconditionsData, SoftwareStepsToReproduceData } from '../../types';
 import FormField from '../common/FormField';
 import ValidationMessage from '../common/ValidationMessage';
 import GleanButton from '../common/GleanButton';
 
 interface Props {
-  bugData: SQABugData;
-  onChange: (patch: Partial<SQABugData>) => void;
+  bugData: SoftwareBugData;
+  onChange: (patch: Partial<SoftwareBugData>) => void;
   onValidate: (valid: boolean) => void;
   config: AppConfig;
 }
@@ -17,8 +17,8 @@ const inp: React.CSSProperties = {
 };
 
 function validate(
-  pre: SQAPreconditionsData,
-  repro: SQAStepsToReproduceData,
+  pre: SoftwarePreconditionsData,
+  repro: SoftwareStepsToReproduceData,
   hardwareConfig: string,
 ): string | null {
   if (!hardwareConfig.trim()) return 'Hardware configuration is required.';
@@ -40,7 +40,7 @@ const Step3Preconditions: React.FC<Props> = ({ bugData, onChange, onValidate, co
 
   useEffect(() => { onValidate(!error); }, [error]);
 
-  function updatePre(patch: Partial<SQAPreconditionsData>) {
+  function updatePre(patch: Partial<SoftwarePreconditionsData>) {
     onChange({ preconditions: { ...pre, ...patch } });
     setTouched(true);
   }
@@ -50,7 +50,7 @@ const Step3Preconditions: React.FC<Props> = ({ bugData, onChange, onValidate, co
     setTouched(true);
   }
 
-  function updateRepro(patch: Partial<SQAStepsToReproduceData>) {
+  function updateRepro(patch: Partial<SoftwareStepsToReproduceData>) {
     onChange({ stepsToReproduce: { ...repro, ...patch } });
     setTouched(true);
   }

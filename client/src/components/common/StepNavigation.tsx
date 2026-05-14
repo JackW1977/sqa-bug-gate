@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 interface StepNavigationProps {
   stepIndex: number;
@@ -44,7 +44,7 @@ const StepNavigation: React.FC<StepNavigationProps> = ({
         onClick={onSubmit}
         disabled={!canGoNext || isSubmitting}
       >
-        {isSubmitting ? 'Creating Bug…' : '✓ Create SQA Bug'}
+        {isSubmitting ? 'Creating Bug…' : '✓ Create Software Bug'}
       </button>
     ) : (
       <button

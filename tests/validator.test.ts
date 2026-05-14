@@ -1,4 +1,4 @@
-import {
+﻿import {
   validateSummary,
   validateEnvironment,
   validatePreconditions,
@@ -11,11 +11,11 @@ import {
   assembleSummary,
   summaryMatchesPattern,
 } from '../src/utils/validator';
-import type { SQABugData } from '../src/utils/sqaInstructionModel';
+import type { SoftwareBugData } from '../src/utils/SoftwareInstructionModel';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function makeBugData(overrides: Partial<SQABugData> = {}): SQABugData {
+function makeBugData(overrides: Partial<SoftwareBugData> = {}): SoftwareBugData {
   return {
     projectKey: 'TEST',
     summary: {
@@ -289,7 +289,7 @@ describe('validateDuplicateSearch', () => {
 // ─── Full checklist ───────────────────────────────────────────────────────────
 
 describe('runChecklist', () => {
-  it('passes a complete, valid SQA bug', () => {
+  it('passes a complete, valid Software bug', () => {
     const result = runChecklist(makeBugData());
     expect(result.passed).toBe(true);
     expect(result.items.every((i) => i.passed)).toBe(true);
