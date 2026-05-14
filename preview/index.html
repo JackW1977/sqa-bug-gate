@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SQA Bug Gate — Preview (noahmed / SW)</title>
+  <title>Software Bug Gate — Preview (noahmed / SW)</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -40,17 +40,25 @@ function browseUrl(key) {
 }
 
 // ─── Categories ───────────────────────────────────────────────────────────────
+// subs: [{ value, description, items[] }]  — sub-category code + definition + key-models
 const CATEGORIES = [
-  { value: "R&C",   label: "R&C – Robotic & Camera",           subs: ["BC (Bronchoscope)"] },
-  { value: "RA",    label: "RA – Robot Arm",                    subs: ["Robot Arm"] },
-  { value: "WC",    label: "WC – Wire Controller",              subs: ["Wire Controller"] },
-  { value: "TPS",   label: "TPS – Treatment Planning System",   subs: ["WF (Workflow)"] },
-  { value: "PL",    label: "PL – Planning",                     subs: ["Planning"] },
-  { value: "SG",    label: "SG – Segmentation",                 subs: ["Segmentation"] },
-  { value: "TDS",   label: "TDS – Treatment Delivery System",   subs: ["IM (Imaging)"] },
-  { value: "WF",    label: "WF – Workflow",                     subs: ["Workflow"] },
-  { value: "LOG",   label: "LOG – Logging / Diagnostics",       subs: ["N/A"] },
-  { value: "UI/UX", label: "UI/UX – User Interface",            subs: ["N/A"] },
+  { value: "TPS", label: "TPS – Treatment Planning System", subs: [
+    { value: "WF",    description: "Workflow screens for plan import/export",             items: ["ImportingScan", "LoadingPlan", "ExportingPlan"] },
+    { value: "SG",    description: "Segmentation of anatomical structures",               items: ["AutoSegment", "ManuISegment"] },
+    { value: "LOG",   description: "Logging and diagnostics capture",                     items: ["NA"] },
+    { value: "PL",    description: "Planning tools for target and airway editing",        items: ["EditTarget", "EditPath", "ExtendAirway", "EditTrachea", "PlanReview", "CTPanels"] },
+  ]},
+  { value: "TDS", label: "TDS – Treatment Delivery System", subs: [
+    { value: "IM",    description: "Imaging — arm selection, capture and lesion marking", items: ["ArmSelection", "Capturing", "Lesion"] },
+    { value: "WF",    description: "Procedure workflow from loading to end",              items: ["LoadingProcedure", "Setup", "Registration", "Driving", "EndProcedure"] },
+    { value: "LOG",   description: "Logging and diagnostics capture",                     items: ["NA"] },
+    { value: "UI/UX", description: "Admin/service UI and account management",             items: ["Noahadmin/service/Eng", "Change password"] },
+  ]},
+  { value: "R&C", label: "R&C – Robotic & Camera", subs: [
+    { value: "BC",  description: "Bronchoscope scope feed and USB connection",            items: ["Bronchoscope"] },
+    { value: "RA",  description: "Robotic arm movement and homing",                      items: ["Robot Arm"] },
+    { value: "WC",  description: "Wire controller inputs and communication",              items: ["Wire Controller"] },
+  ]},
 ];
 
 // ─── Realistic SW mock issues ─────────────────────────────────────────────────
@@ -91,7 +99,7 @@ const MOCK_CLOSED = [
 const WIZARD_STEPS = [
   "Summary", "Preconditions & Steps",
   "Expected vs Actual",
-  "Evidence", "Traceability",
+  "Traceability",
   "Duplicate Search", "Review & Submit"
 ];
 
@@ -102,7 +110,7 @@ const INITIAL = {
 
   // Step 1 — Summary
   category: "R&C",
-  subCategory: "BC (Bronchoscope)",
+  subCategory: "BC",
   problemStatement: "Bronchoscope feed fails to initialize and remains black",
   conditionClause: "when connecting USB scope on a cold-boot system",
 
@@ -166,6 +174,27 @@ const INITIAL = {
   gleanEnabled: true,
   gleanBaseUrl: "https://noahmed-be.glean.com",
   gleanTokenSet: true,
+
+  // Bug Categories (editable in Config)
+  categories: [
+    { value: "TPS", label: "TPS – Treatment Planning System", subs: [
+      { value: "WF",    description: "Workflow screens for plan import/export",             items: ["ImportingScan", "LoadingPlan", "ExportingPlan"] },
+      { value: "SG",    description: "Segmentation of anatomical structures",               items: ["AutoSegment", "ManuISegment"] },
+      { value: "LOG",   description: "Logging and diagnostics capture",                     items: ["NA"] },
+      { value: "PL",    description: "Planning tools for target and airway editing",        items: ["EditTarget", "EditPath", "ExtendAirway", "EditTrachea", "PlanReview", "CTPanels"] },
+    ]},
+    { value: "TDS", label: "TDS – Treatment Delivery System", subs: [
+      { value: "IM",    description: "Imaging — arm selection, capture and lesion marking", items: ["ArmSelection", "Capturing", "Lesion"] },
+      { value: "WF",    description: "Procedure workflow from loading to end",              items: ["LoadingProcedure", "Setup", "Registration", "Driving", "EndProcedure"] },
+      { value: "LOG",   description: "Logging and diagnostics capture",                     items: ["NA"] },
+      { value: "UI/UX", description: "Admin/service UI and account management",             items: ["Noahadmin/service/Eng", "Change password"] },
+    ]},
+    { value: "R&C", label: "R&C – Robotic & Camera", subs: [
+      { value: "BC",  description: "Bronchoscope scope feed and USB connection",            items: ["Bronchoscope"] },
+      { value: "RA",  description: "Robotic arm movement and homing",                      items: ["Robot Arm"] },
+      { value: "WC",  description: "Wire controller inputs and communication",              items: ["Wire Controller"] },
+    ]},
+  ],
 };
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
@@ -204,7 +233,7 @@ function Banner({ type="info", title, children }) {
   );
 }
 
-// ─── Glean AI mock button ─────────────────────────────────────────────────────
+// ─── Glean AI button ──────────────────────────────────────────────────────────
 
 function GleanBtn({ value, onAccept, context, enabled }) {
   const [status, setStatus] = React.useState("idle"); // idle | loading | preview | error
@@ -213,26 +242,54 @@ function GleanBtn({ value, onAccept, context, enabled }) {
   if (!enabled || !value || !value.trim()) return null;
 
   async function handleClick() {
+    setStatus("loading");
+
+    // ── Try Flask proxy first (works when launched via start.bat / app.py) ──────
+    try {
+      const proxyRes = await fetch("/api/rephrase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: value, fieldContext: context }),
+      });
+      const ct = proxyRes.headers.get("content-type") || "";
+      if (ct.includes("application/json")) {
+        const data = await proxyRes.json();
+        if (data.success && data.rephrased) {
+          setSuggestion(data.rephrased.trim());
+          setStatus("preview");
+          return;
+        }
+        if (data.error) {
+          setSuggestion(data.error);
+          setStatus("error");
+          return;
+        }
+      }
+      // Non-JSON response means the built-in preview server intercepted it —
+      // fall through to direct browser call below.
+    } catch (_) {
+      // fetch() threw (e.g. no server running) — fall through to direct call.
+    }
+
+    // ── Fall back: call Glean API directly from the browser ───────────────────
     const token   = localStorage.getItem("glean_preview_token") || "";
     const baseUrl = (INITIAL.gleanBaseUrl || "").replace(/\/$/, "");
 
     if (!token || !baseUrl) {
-      setSuggestion("Glean not configured — go to ⚙ Config and paste your API token.");
+      setSuggestion("Glean not configured — go to ⚙ Config and paste your API token, or add GLEAN_TOKEN / GLEAN_BASE_URL to .env and restart.");
       setStatus("error");
       return;
     }
 
-    setStatus("loading");
-
-    const SQA_PROMPT =
-      "You are an SQA technical writer for a medical device software company. " +
+    const Software_PROMPT =
+      "You are an Software technical writer for a medical device software company. " +
       "Rephrase the provided text to be clear, precise, and professional, suitable for " +
       "IEC 62304 / ISO 14971 documentation. Preserve all technical details, version numbers, " +
       "hardware names, error messages, file names, and IDs exactly as given. " +
       "Return only the rephrased text — no preamble, explanation, or quotation marks.";
 
     try {
-      const res = await fetch(`${baseUrl}/api/v1/chat`, {
+      const res = await fetch(`${baseUrl}/rest/api/v1/chat`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -242,7 +299,7 @@ function GleanBtn({ value, onAccept, context, enabled }) {
         body: JSON.stringify({
           messages: [{
             author: "USER",
-            fragments: [{ text: `${SQA_PROMPT}\n\nField context: "${context}"\n\nText to rephrase:\n${value}` }],
+            fragments: [{ text: `${Software_PROMPT}\n\nField context: "${context}"\n\nText to rephrase:\n${value}` }],
           }],
           stream: false,
         }),
@@ -377,7 +434,7 @@ function Nav({ idx, total, canNext, isLast, isSubmitting, onBack, onNext, onSubm
       {isLast
         ? <button style={{...btn,background:canNext?"var(--green)":"var(--gray-300)",color:"#fff"}}
             onClick={onSubmit} disabled={!canNext||isSubmitting}>
-            {isSubmitting?"Creating…":"✓ Create SQA Bug in SW"}
+            {isSubmitting?"Creating…":"✓ Create Software Bug in SW"}
           </button>
         : <button style={{...btn,background:canNext?"var(--blue)":"var(--gray-300)",color:"#fff"}}
             onClick={onNext} disabled={!canNext}>Next →</button>
@@ -391,7 +448,8 @@ function Nav({ idx, total, canNext, isLast, isSubmitting, onBack, onNext, onSubm
 // ─── Step 1 – Summary ─────────────────────────────────────────────────────────
 
 function StepSummary({ d, set }) {
-  const subs = CATEGORIES.find(c=>c.value===d.category)?.subs ?? [];
+  const cats = d.categories || CATEGORIES;
+  const subs = cats.find(c=>c.value===d.category)?.subs ?? [];
   const assembled = d.category && d.subCategory && d.problemStatement
     ? `[${d.category}]-[${d.subCategory}]: ${d.problemStatement}${d.conditionClause?" "+d.conditionClause:""}`
     : "";
@@ -412,13 +470,13 @@ function StepSummary({ d, set }) {
         <Field label="Category" required>
           <select value={d.category} onChange={e=>set({category:e.target.value,subCategory:""})} style={inp}>
             <option value="">— Select —</option>
-            {CATEGORIES.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}
+            {cats.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </Field>
         <Field label="Sub-Category" required>
           <select value={d.subCategory} onChange={e=>set({subCategory:e.target.value})} style={inp} disabled={!d.category}>
             <option value="">— Select —</option>
-            {subs.map(s=><option key={s} value={s}>{s}</option>)}
+            {subs.map(s=><option key={s.value} value={s.value}>{s.value}</option>)}
           </select>
         </Field>
       </div>
@@ -490,14 +548,18 @@ function StepPreconditions({ d, set }) {
             Steps to Reproduce <span style={{color:"var(--red)"}}>*</span>
           </label>
           {d.steps.map((step,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:8,marginBottom:8}}>
               <div style={{minWidth:24,height:24,background:"var(--blue)",color:"#fff",borderRadius:"50%",
-                display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700}}>{i+1}</div>
-              <input type="text" value={step} placeholder={`Step ${i+1}…`}
-                onChange={e=>updateStep(i,e.target.value)} style={{...inp,flex:1}} />
+                display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,marginTop:6}}>{i+1}</div>
+              <div style={{flex:1}}>
+                <input type="text" value={step} placeholder={`Step ${i+1}…`}
+                  onChange={e=>updateStep(i,e.target.value)} style={{...inp,width:"100%",boxSizing:"border-box"}} />
+                <GleanBtn value={step} onAccept={v=>updateStep(i,v)}
+                  context={`step ${i+1} in the reproduction sequence`} enabled={d.gleanEnabled} />
+              </div>
               <button onClick={()=>removeStep(i)} disabled={d.steps.length<=1}
                 style={{padding:"5px 9px",background:"var(--red-light)",color:"var(--red-dark)",
-                  border:"1px solid #FFBDAD",borderRadius:4,cursor:"pointer",fontSize:13}}>×</button>
+                  border:"1px solid #FFBDAD",borderRadius:4,cursor:"pointer",fontSize:13,marginTop:4}}>×</button>
             </div>
           ))}
           <button onClick={addStep}
@@ -605,20 +667,102 @@ function StepDupSearch({ d, set }) {
   const [searching, setSearching] = React.useState(false);
   const [open, setOpen] = React.useState([]);
   const [closed, setClosed] = React.useState([]);
+  const [openTotal, setOpenTotal] = React.useState(null);
+  const [closedTotal, setClosedTotal] = React.useState(null);
+  const [fallbackUsed, setFallbackUsed] = React.useState(false);
   const [outcome, setOutcome] = React.useState(d.dupOutcome);
   const [selectedKey, setSelectedKey] = React.useState(null);
+  const [searchError, setSearchError] = React.useState(null);
+  const [liveJql, setLiveJql] = React.useState(null);
+  const [isMock, setIsMock] = React.useState(false);
 
-  const autoQuery = d.category
-    ? `project = SW AND issuetype = Bug AND statusCategory != Done AND summary ~ "[${d.category}]" AND (summary ~ "${(d.problemStatement||"").split(" ").slice(0,3).join(" ")}")`
-    : "";
+  const project = d.projectKey || "SW";
+  const jira_host_display = () => "noahmed.atlassian.net";
 
-  function runSearch() {
+  // Escape special JQL text-search characters: [ ] & + - ! ( ) { } ^ ~ * ? : | " \
+  function jqlEscape(s) {
+    return s.replace(/([[\]&+\-!(){}^~*?:|"\\])/g, "\\$1");
+  }
+
+  // Smart auto-JQL builder — keywords OR-joined for wider recall
+  function buildAutoJql() {
+    const STOP = new Set(["a","an","the","and","or","not","in","on","at","to","for","of","with",
+      "by","is","are","was","were","be","been","this","that","it","its","from","when","while",
+      "if","as","until","after","before","fails","fail","during","into","does","do","did",
+      "has","have","had","no","so"]);
+    const words = (d.problemStatement||"")
+      .replace(/[^a-zA-Z0-9 ]/g," ").split(/\s+/)
+      .filter(w => w.length >= 4 && !STOP.has(w.toLowerCase()))
+      .slice(0, 6);                                         // up to 6 keywords
+    let q = `project = ${project} AND issuetype = Bug AND statusCategory != Done`;
+    if (words.length) {
+      // OR-join so any single keyword match surfaces the issue (wider recall)
+      const orClauses = words.map(w => `text ~ "${jqlEscape(w)}"`).join(" OR ");
+      q += ` AND (${orClauses})`;
+    }
+    return q;
+  }
+
+  const [jqlInput, setJqlInput] = React.useState(() => buildAutoJql());
+  const [jqlEdited, setJqlEdited] = React.useState(false);
+
+  // Reactively rebuild JQL when source fields change — unless user has hand-edited it
+  React.useEffect(() => {
+    if (!jqlEdited) {
+      setJqlInput(buildAutoJql());
+    }
+  }, [d.problemStatement, d.category, d.subCategory, d.projectKey]);
+
+  async function runSearch() {
     setSearching(true); setOutcome(""); setSelectedKey(null);
-    setTimeout(() => {
+    setSearchError(null); setIsMock(false);
+    set({searchDone:false, dupOutcome:"", dupLinked:[]});
+
+    try {
+      const resp = await fetch("/api/searchDuplicates", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          jql: jqlInput.trim(),           // send the (possibly edited) JQL directly
+          bugData: {
+            projectKey: project,
+            summary: {
+              category:         d.category,
+              subCategory:      d.subCategory,
+              problemStatement: d.problemStatement,
+            }
+          }
+        }),
+      });
+
+      // Flask not available (preview mode) → TypeError / non-JSON
+      const ct = resp.headers.get("content-type") || "";
+      if (!ct.includes("application/json")) throw new Error("not_flask");
+
+      const data = await resp.json();
+
+      if (data.success) {
+        const norm = arr => (arr||[]).map(r=>({...r, desc: r.description || ""}));
+        setOpen(norm(data.openResults));
+        setClosed(norm(data.closedResults));
+        if (data.openJql) setLiveJql(data.openJql);
+        // Store totals so we can show "showing X of Y"
+        setOpenTotal(data.openTotal ?? (data.openResults||[]).length);
+        setClosedTotal(data.closedTotal ?? (data.closedResults||[]).length);
+        setFallbackUsed(!!data.fallback);
+        set({searchDone:true, dupOutcome:"", dupLinked:[]});
+      } else {
+        setSearchError(data.error || "Search failed — check Jira credentials in .env.");
+        set({searchDone:false});
+      }
+    } catch(_) {
+      // No Flask server — fall back to mock data so the UI still works in preview
       setOpen(MOCK_OPEN); setClosed(MOCK_CLOSED);
-      set({searchDone:true,dupOutcome:"",dupLinked:[]});
-      setSearching(false);
-    }, 1200);
+      setIsMock(true);
+      set({searchDone:true, dupOutcome:"", dupLinked:[]});
+    }
+
+    setSearching(false);
   }
 
   function pickOutcome(val, key=null) {
@@ -642,86 +786,169 @@ function StepDupSearch({ d, set }) {
         </p>
       )}
 
-      {autoQuery && (
-        <div style={{background:"#1B2A4A",color:"#8FC3F7",fontSize:11,padding:"6px 12px",
-          borderRadius:4,marginBottom:12,fontFamily:"monospace",wordBreak:"break-all"}}>
-          AUTO JQL: {autoQuery}
+      {/* Editable JQL block */}
+      <div style={{marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+          <span style={{fontSize:11,fontWeight:700,color:"var(--gray-500)",textTransform:"uppercase",letterSpacing:"0.05em"}}>
+            JQL Query {jqlEdited && <span style={{color:"var(--orange)",fontWeight:600,textTransform:"none",letterSpacing:"normal"}}> — edited</span>}
+          </span>
+          <div style={{display:"flex",gap:6}}>
+            {jqlEdited && (
+              <button onClick={()=>{setJqlInput(buildAutoJql());setJqlEdited(false);}}
+                style={{padding:"3px 10px",background:"var(--gray-50)",color:"var(--gray-700)",
+                  border:"1px solid var(--gray-100)",borderRadius:4,fontSize:12,cursor:"pointer"}}>
+                ↺ Reset to auto
+              </button>
+            )}
+            <a href={`https://noahmed.atlassian.net/issues/?jql=${encodeURIComponent(jqlInput)}`}
+              target="_blank"
+              style={{padding:"3px 10px",background:"var(--blue-light)",color:"var(--blue-dark)",
+                border:"1px solid #B3D4FF",borderRadius:4,fontSize:12,textDecoration:"none",fontWeight:600}}>
+              Open in Jira ↗
+            </a>
+          </div>
         </div>
-      )}
+        <textarea
+          value={jqlInput}
+          onChange={e=>{setJqlInput(e.target.value);setJqlEdited(e.target.value!==autoQuery);}}
+          spellCheck={false}
+          rows={3}
+          style={{width:"100%",boxSizing:"border-box",background:"#1B2A4A",color:"#8FC3F7",
+            fontSize:12,padding:"10px 14px",borderRadius:4,fontFamily:"'Consolas','Courier New',monospace",
+            border:jqlEdited?"2px solid var(--orange)":"2px solid #2E4A7A",
+            resize:"vertical",lineHeight:1.6,outline:"none"}}
+        />
+        {liveJql && liveJql !== jqlInput && (
+          <div style={{fontSize:11,color:"var(--gray-500)",marginTop:4}}>
+            Server ran: <code style={{color:"#6B9BD2"}}>{liveJql}</code>
+          </div>
+        )}
+      </div>
 
       {outcome==="open_match" && (
-        <Banner type="warning" title="Open duplicate found in SW">
-          An open SW bug matches. Add evidence to that issue instead of creating a new one.
+        <Banner type="warning" title={`Open duplicate found in ${project}`}>
+          An open {project} bug matches. Add evidence to that issue instead of creating a new one.
           {selectedKey && <span> → <a href={browseUrl(selectedKey)} target="_blank">{selectedKey} ↗</a></span>}
         </Banner>
       )}
 
-      <button onClick={runSearch} disabled={searching}
-        style={{padding:"8px 18px",background:"var(--blue)",color:"#fff",border:"none",
-          borderRadius:4,fontSize:14,cursor:"pointer",marginBottom:16,opacity:searching?0.7:1}}>
-        {searching?"🔍 Searching noahmed.atlassian.net…":"🔍 Run Duplicate Search (SW)"}
-      </button>
-
-      {!d.searchDone && !searching && (
-        <Banner type="info">Click to search open and closed SW bugs before creating.</Banner>
+      {searchError && (
+        <Banner type="error">⚠ {searchError}</Banner>
       )}
 
-      {(open.length > 0 || closed.length > 0) && (
+      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16,flexWrap:"wrap"}}>
+        <button onClick={runSearch} disabled={searching}
+          style={{padding:"8px 18px",background:"var(--blue)",color:"#fff",border:"none",
+            borderRadius:4,fontSize:14,cursor:searching?"not-allowed":"pointer",opacity:searching?0.7:1}}>
+          {searching ? `🔍 Searching ${jira_host_display()}…` : `🔍 Run Duplicate Search (${project})`}
+        </button>
+        {isMock && (
+          <span style={{fontSize:12,color:"#974F0C",background:"#FFFAE6",border:"1px solid #FFE380",
+            borderRadius:4,padding:"4px 10px",fontWeight:600}}>
+            ⚠ Preview mode — showing mock data. Run via start.bat for live Jira results.
+          </span>
+        )}
+        {d.searchDone && !isMock && !searching && (
+          <span style={{fontSize:12,color:"#006644",background:"#E3FCEF",border:"1px solid #ABF5D1",
+            borderRadius:4,padding:"4px 10px",fontWeight:600}}>
+            ✓ Live results from {project}
+          </span>
+        )}
+      </div>
+
+      {!d.searchDone && !searching && !searchError && (
+        <Banner type="info">Click to search open and closed {project} bugs before creating.</Banner>
+      )}
+
+      {fallbackUsed && d.searchDone && (
+        <Banner type="warning">
+          No keyword matches found — showing all recent {project} bugs. Scan the list below to check for duplicates.
+        </Banner>
+      )}
+
+      {/* Results — always shown after search completes */}
+      {d.searchDone && (
         <>
-          {/* Open bugs */}
-          <h4 style={{margin:"0 0 8px",color:"var(--gray-900)"}}>Open SW Bugs ({open.length})</h4>
+          {/* Open bugs table */}
+          <h4 style={{margin:"0 0 8px",color:"var(--gray-900)"}}>
+            Open {project} Bugs
+            {openTotal!==null && <span style={{fontWeight:400,color:"var(--gray-500)",fontSize:13}}>
+              {" "}— showing {open.length} of {openTotal}
+            </span>}
+          </h4>
           <div style={{border:"1px solid var(--gray-100)",borderRadius:4,marginBottom:14,overflow:"hidden"}}>
-            <div style={{...rowStyle,background:"var(--gray-50)",fontWeight:600,borderBottom:"2px solid var(--gray-100)",cursor:"default"}}>
+            <div style={{...rowStyle,background:"var(--gray-50)",fontWeight:600,
+              borderBottom:"2px solid var(--gray-100)",cursor:"default"}}>
               <span>Key</span><span>Summary</span><span>Status</span>
             </div>
-            {open.map(r=>(
+            {open.length === 0 ? (
+              <div style={{padding:"14px 16px",fontSize:13,color:"var(--gray-500)",fontStyle:"italic"}}>
+                No open {project} bugs matched the search query.
+              </div>
+            ) : open.map(r=>(
               <div key={r.key} style={{...rowStyle,background:selectedKey===r.key?"var(--blue-light)":"#fff"}}
                 onClick={()=>pickOutcome("open_match",r.key)}>
                 <span>
                   <input type="radio" readOnly checked={selectedKey===r.key} />{" "}
-                  <a href={browseUrl(r.key)} target="_blank" style={{fontWeight:600}}>{r.key}</a>
+                  <a href={r.url||browseUrl(r.key)} target="_blank" style={{fontWeight:600}}>{r.key}</a>
                 </span>
                 <span>
                   <div style={{fontWeight:500,marginBottom:2}}>{r.summary}</div>
-                  <div style={{color:"var(--gray-500)",fontSize:12}}>{r.desc.slice(0,110)}…</div>
-                  <div style={{fontSize:11,color:"var(--gray-300)",marginTop:2}}>Assignee: {r.assignee} · {r.created}</div>
+                  {r.desc&&<div style={{color:"var(--gray-500)",fontSize:12}}>{r.desc.slice(0,120)}{r.desc.length>120?"…":""}</div>}
+                  <div style={{fontSize:11,color:"var(--gray-300)",marginTop:2}}>
+                    {r.assignee&&<span>Assignee: {r.assignee} · </span>}
+                    {r.created&&<span>{r.created.slice(0,10)}</span>}
+                  </div>
                 </span>
                 <span style={{background:"var(--red-light)",color:"var(--red-dark)",borderRadius:3,
-                  padding:"2px 6px",fontSize:11,fontWeight:600}}>{r.status}</span>
+                  padding:"2px 6px",fontSize:11,fontWeight:600,whiteSpace:"nowrap"}}>{r.status}</span>
               </div>
             ))}
           </div>
 
-          {/* Closed bugs */}
-          <h4 style={{margin:"0 0 8px",color:"var(--gray-900)"}}>Closed / Resolved SW Bugs ({closed.length})</h4>
+          {/* Closed bugs table */}
+          <h4 style={{margin:"0 0 8px",color:"var(--gray-900)"}}>
+            Closed / Resolved {project} Bugs
+            {closedTotal!==null && <span style={{fontWeight:400,color:"var(--gray-500)",fontSize:13}}>
+              {" "}— showing {closed.length} of {closedTotal}
+            </span>}
+          </h4>
           <div style={{border:"1px solid var(--gray-100)",borderRadius:4,marginBottom:16,overflow:"hidden"}}>
-            <div style={{...rowStyle,background:"var(--gray-50)",fontWeight:600,borderBottom:"2px solid var(--gray-100)",cursor:"default"}}>
+            <div style={{...rowStyle,background:"var(--gray-50)",fontWeight:600,
+              borderBottom:"2px solid var(--gray-100)",cursor:"default"}}>
               <span>Key</span><span>Summary</span><span>Status</span>
             </div>
-            {closed.map(r=>(
+            {closed.length === 0 ? (
+              <div style={{padding:"14px 16px",fontSize:13,color:"var(--gray-500)",fontStyle:"italic"}}>
+                No closed {project} bugs matched the search query.
+              </div>
+            ) : closed.map(r=>(
               <div key={r.key} style={{...rowStyle,background:selectedKey===r.key?"var(--green-light)":"#fff"}}
                 onClick={()=>pickOutcome("closed_match",r.key)}>
                 <span>
                   <input type="radio" readOnly checked={selectedKey===r.key} />{" "}
-                  <a href={browseUrl(r.key)} target="_blank" style={{fontWeight:600}}>{r.key}</a>
+                  <a href={r.url||browseUrl(r.key)} target="_blank" style={{fontWeight:600}}>{r.key}</a>
                 </span>
                 <span>
                   <div style={{fontWeight:500,marginBottom:2}}>{r.summary}</div>
-                  <div style={{color:"var(--gray-500)",fontSize:12}}>{r.desc.slice(0,110)}…</div>
-                  <div style={{fontSize:11,color:"var(--gray-300)",marginTop:2}}>Assignee: {r.assignee} · {r.created}</div>
+                  {r.desc&&<div style={{color:"var(--gray-500)",fontSize:12}}>{r.desc.slice(0,120)}{r.desc.length>120?"…":""}</div>}
+                  <div style={{fontSize:11,color:"var(--gray-300)",marginTop:2}}>
+                    {r.assignee&&<span>Assignee: {r.assignee} · </span>}
+                    {r.created&&<span>{r.created.slice(0,10)}</span>}
+                  </div>
                 </span>
                 <span style={{background:"var(--green-light)",color:"#006644",borderRadius:3,
-                  padding:"2px 6px",fontSize:11,fontWeight:600}}>{r.status}</span>
+                  padding:"2px 6px",fontSize:11,fontWeight:600,whiteSpace:"nowrap"}}>{r.status}</span>
               </div>
             ))}
           </div>
 
-          {/* Outcome */}
+          {/* Outcome — always reachable after search */}
           <h4 style={{margin:"0 0 10px",color:"var(--gray-900)"}}>Select Outcome</h4>
           {[
-            {v:"none",        label:"✅ None match — proceed with new SW bug",           c:"#006644", bg:"var(--green-light)"},
-            {v:"closed_match",label:"🔄 Matches a CLOSED SW bug — re-occurrence (will link)", c:"#974F0C", bg:"var(--orange-light)"},
-            {v:"open_match",  label:"🚫 Matches an OPEN SW bug — add evidence there",    c:"var(--red-dark)", bg:"var(--red-light)"},
+            {v:"none",        label:`✅ None match — proceed with new ${project} bug`,            c:"#006644",          bg:"var(--green-light)"},
+            {v:"closed_match",label:`🔄 Matches a CLOSED ${project} bug — re-occurrence (will link)`, c:"#974F0C",      bg:"var(--orange-light)"},
+            {v:"open_match",  label:`🚫 Matches an OPEN ${project} bug — add evidence there`,    c:"var(--red-dark)", bg:"var(--red-light)"},
           ].map(opt=>(
             <label key={opt.v} style={{display:"flex",alignItems:"center",gap:10,
               padding:"9px 14px",borderRadius:4,marginBottom:6,cursor:"pointer",
@@ -775,8 +1002,6 @@ function StepReview({ d, onSubmit, submitting }) {
      ok:!!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions))&&!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2},
     {label:"Expected vs actual behavior — clearly differentiated",
      ok:!!d.expectedBehavior&&!!d.actualBehavior&&d.expectedBehavior.toLowerCase()!==d.actualBehavior.toLowerCase()},
-    {label:"Evidence — at least one reference",
-     ok:!!(d.screenshots||d.videos||d.logs||d.testIds)},
     {label:"Duplicate search — performed and outcome resolved",
      ok:d.searchDone&&!!d.dupOutcome&&d.dupOutcome!=="open_match"},
   ];
@@ -807,7 +1032,7 @@ function StepReview({ d, onSubmit, submitting }) {
       {/* Checklist */}
       <div style={{border:"1px solid var(--gray-100)",borderRadius:4,overflow:"hidden",marginBottom:16}}>
         <div style={{background:"var(--gray-50)",padding:"8px 14px",fontWeight:700,fontSize:13,borderBottom:"2px solid var(--gray-100)"}}>
-          SQA Pre-Submit Checklist —{" "}
+          Software Pre-Submit Checklist —{" "}
           {pass
             ? <span style={{color:"var(--green)"}}>PASSED ✓</span>
             : <span style={{color:"var(--red-dark)"}}>FAILED ✗ ({checks.filter(c=>!c.ok).length} items)</span>}
@@ -875,7 +1100,7 @@ function StepReview({ d, onSubmit, submitting }) {
         <button onClick={onSubmit} disabled={!pass||submitting}
           style={{padding:"12px 32px",fontSize:15,fontWeight:700,border:"none",
             background:pass?"var(--green)":"var(--gray-300)",color:"#fff",borderRadius:4,cursor:pass?"pointer":"not-allowed"}}>
-          {submitting?"⏳ Creating bug…":"✓ Create SQA Bug in Jira"}
+          {submitting?"⏳ Creating bug…":"✓ Create Software Bug in Jira"}
         </button>
       </div>
     </div>
@@ -921,7 +1146,7 @@ function PanelPreview({ issueKey, scenario }) {
         border:`2px solid ${data.passed?"var(--green)":"var(--red)"}`,
         borderRadius:6,padding:"10px 14px",marginBottom:12}}>
         <div style={{fontWeight:800,fontSize:14,color:data.passed?"#006644":"var(--red-dark)"}}>
-          {data.passed?"✓ SQA GATE: PASSED":"✗ SQA GATE: FAILED"}
+          {data.passed?"✓ Software GATE: PASSED":"✗ Software GATE: FAILED"}
         </div>
         <div style={{fontSize:11,color:"#6B778C",marginTop:3}}>Last checked: {new Date().toLocaleString()}</div>
       </div>
@@ -978,6 +1203,7 @@ function ConfigPage({ d, set }) {
   const storedToken = localStorage.getItem("glean_preview_token") || "";
   const [showToken, setShowToken] = React.useState(!storedToken);
   const [tokenVal, setTokenVal] = React.useState("");
+  const [testStatus, setTestStatus] = React.useState(null); // null | "testing" | {ok, msg}
 
   const sCard = {background:"#fff",border:"1px solid var(--gray-100)",borderRadius:4,marginBottom:20,overflow:"hidden"};
   const sHead = (bg="#F4F5F7",color="#344563",border="var(--gray-100)") => ({
@@ -1008,6 +1234,79 @@ function ConfigPage({ d, set }) {
     }, 300);
   }
 
+  async function testConnection() {
+    setTestStatus("testing");
+    const token  = tokenVal.trim() || localStorage.getItem("glean_preview_token") || "";
+    const baseUrl = (d.gleanBaseUrl || "").replace(/\/$/, "");
+
+    if (!baseUrl) {
+      setTestStatus({ok:false, msg:"Enter the Base URL before testing."}); return;
+    }
+
+    // ── 1. Try Flask proxy (available when launched via start.bat) ───────────
+    try {
+      const r = await fetch("/api/testGlean", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({}),
+      });
+      const ct = r.headers.get("content-type") || "";
+      if (ct.includes("application/json")) {
+        const data = await r.json();
+        setTestStatus({ok: data.success, msg: data.message || data.error || "Unknown response."});
+        return;
+      }
+    } catch(_) {}
+
+    // ── 2. No Flask proxy — browser-direct test (preview mode) ───────────────
+    if (!token) {
+      setTestStatus({ok:false, msg:"No API token set. Enter a token above and save first."}); return;
+    }
+
+    const headers = {"Authorization":`Bearer ${token}`,"Content-Type":"application/json"};
+
+    // Try chat endpoint
+    let chatStatus = null, chatOk = false, corsBlocked = false;
+    try {
+      const rc = await fetch(`${baseUrl}/rest/api/v1/chat`, {
+        method:"POST", headers,
+        body: JSON.stringify({messages:[{author:"USER",fragments:[{text:"hi"}]}]}),
+      });
+      chatStatus = rc.status; chatOk = rc.ok;
+    } catch(e) {
+      // "Failed to fetch" / TypeError = CORS block or unreachable host
+      corsBlocked = (e instanceof TypeError);
+      chatStatus = e.message;
+    }
+
+    if (chatOk) {
+      setTestStatus({ok:true, msg:"Connection successful — Glean chat API is reachable."}); return;
+    }
+
+    if (corsBlocked) {
+      setTestStatus({ok:false,
+        msg:"Browser cannot reach Glean directly (CORS). This is expected in preview mode. " +
+            "Run the app via start.bat — Flask proxies all Glean calls server-side where CORS does not apply."
+      }); return;
+    }
+
+    // HTTP error — try search to distinguish token-invalid vs scope-missing
+    let searchOk = false;
+    try {
+      const rs = await fetch(`${baseUrl}/api/v1/search`, {
+        method:"POST", headers,
+        body: JSON.stringify({query:"test", pageSize:1}),
+      });
+      searchOk = rs.ok;
+    } catch(_) {}
+
+    if (searchOk) {
+      setTestStatus({ok:false, msg:`Token is valid (search works) but chat API returned ${chatStatus}. Ask your Glean admin to grant Chat API access to this token.`});
+    } else {
+      setTestStatus({ok:false, msg:`HTTP ${chatStatus} from Glean. Token may lack the required scope or the Base URL is wrong.`});
+    }
+  }
+
   const SaveBtn = ({size=14}) => (
     <button onClick={save} disabled={saving}
       style={{padding:size===14?"10px 24px":"12px 32px",background:saving?"var(--gray-300)":"#0052CC",
@@ -1021,7 +1320,7 @@ function ConfigPage({ d, set }) {
       {/* Header */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
         <div>
-          <h2 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>⚙ SQA Bug Gate — Settings</h2>
+          <h2 style={{margin:"0 0 4px",color:"var(--gray-900)"}}>⚙ Software Bug Gate — Settings</h2>
           <p style={{margin:0,fontSize:13,color:"var(--gray-500)"}}>Configure gate behaviour, governed projects, and AI integrations.</p>
         </div>
         <SaveBtn />
@@ -1103,7 +1402,7 @@ function ConfigPage({ d, set }) {
           <div style={fRow}>
             <div>
               <div style={{fontWeight:600,fontSize:13,color:"var(--gray-900)"}}>API Token</div>
-              <div style={{fontSize:11,color:"var(--gray-500)",marginTop:2}}>Stored encrypted in Forge secret storage</div>
+              <div style={{fontSize:11,color:"var(--gray-500)",marginTop:2}}>Saved to data/secrets.json on the server</div>
             </div>
             <div>
               {d.gleanTokenSet&&!showToken ? (
@@ -1136,6 +1435,27 @@ function ConfigPage({ d, set }) {
             </div>
           </div>
 
+          {/* Test connection row */}
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16,flexWrap:"wrap"}}>
+            <button
+              onClick={testConnection}
+              disabled={testStatus==="testing" || !d.gleanEnabled}
+              style={{padding:"8px 18px",background:testStatus==="testing"?"var(--gray-300)":"#EAE6FF",
+                color:"#403294",border:"1px solid #C0B6F2",borderRadius:4,fontSize:13,fontWeight:700,
+                cursor:(testStatus==="testing"||!d.gleanEnabled)?"not-allowed":"pointer"}}>
+              {testStatus==="testing" ? "Testing…" : "🔌 Test Connection"}
+            </button>
+            {testStatus && testStatus !== "testing" && (
+              <span style={{fontSize:13,fontWeight:600,
+                color:testStatus.ok?"#006644":"#BF2600",
+                background:testStatus.ok?"#E3FCEF":"#FFEBE6",
+                border:`1px solid ${testStatus.ok?"#ABF5D1":"#FFBDAD"}`,
+                borderRadius:4,padding:"5px 12px"}}>
+                {testStatus.ok ? "✓ " : "⚠ "}{testStatus.msg}
+              </span>
+            )}
+          </div>
+
           {/* Info box */}
           <div style={{background:"#EAE6FF",border:"1px solid #C0B6F2",borderRadius:4,padding:"12px 16px",fontSize:13,color:"#403294"}}>
             <strong>How it works:</strong> When enabled, a purple <strong>✨ Rephrase with Glean</strong> button
@@ -1151,29 +1471,123 @@ function ConfigPage({ d, set }) {
 
       {/* Section 3: Categories */}
       <div style={sCard}>
-        <div style={sHead()}>Bug Categories</div>
+        <div style={{...sHead(),display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <span>Bug Categories</span>
+          <button
+            onClick={()=>set({categories:[...(d.categories||[]),{value:"",label:"",subs:[]}]})}
+            style={{padding:"4px 14px",background:"#0052CC",color:"#fff",border:"none",borderRadius:4,
+              fontSize:12,fontWeight:700,cursor:"pointer",textTransform:"none",letterSpacing:"normal"}}>
+            + Add Category
+          </button>
+        </div>
         <div style={sBody}>
-          <p style={{margin:"0 0 12px",fontSize:13,color:"var(--gray-500)"}}>
-            {CATEGORIES.length} categories configured.
+          <p style={{margin:"0 0 14px",fontSize:13,color:"var(--gray-500)"}}>
+            {(d.categories||[]).length} {(d.categories||[]).length===1?"category":"categories"} configured.
+            Each category has sub-categories with comma-separated key-models.
           </p>
-          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-            {CATEGORIES.map(cat=>(
-              <div key={cat.value} style={{background:"var(--gray-50)",border:"1px solid var(--gray-100)",
-                borderRadius:4,padding:"8px 12px",fontSize:13}}>
-                <div style={{fontWeight:600,color:"var(--gray-900)",marginBottom:4}}>{cat.label}</div>
-                <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
-                  {cat.subs.map(s=>(
-                    <span key={s} style={{background:"#DEEBFF",color:"#0052CC",borderRadius:3,
-                      padding:"1px 6px",fontSize:11}}>{s}</span>
+
+          {(d.categories||[]).length===0&&(
+            <div style={{padding:24,textAlign:"center",fontSize:13,color:"var(--gray-300)",
+              border:"2px dashed var(--gray-100)",borderRadius:4,marginBottom:8}}>
+              No categories yet. Click <strong>+ Add Category</strong> to create one.
+            </div>
+          )}
+
+          {(d.categories||[]).map((cat,ci)=>{
+            function setCat(patch) {
+              const next=(d.categories||[]).map((c,j)=>j===ci?{...c,...patch}:c);
+              set({categories:next});
+            }
+            function removeCat() {
+              set({categories:(d.categories||[]).filter((_,j)=>j!==ci)});
+            }
+            function addSub() {
+              setCat({subs:[...(cat.subs||[]),{value:"",description:"",items:[""]}]});
+            }
+            function setSub(si, patch) {
+              const nextSubs=(cat.subs||[]).map((s,j)=>j===si?{...s,...patch}:s);
+              setCat({subs:nextSubs});
+            }
+            function removeSub(si) {
+              setCat({subs:(cat.subs||[]).filter((_,j)=>j!==si)});
+            }
+            return (
+              <div key={ci} style={{border:"1px solid var(--gray-100)",borderRadius:4,
+                marginBottom:14,overflow:"hidden"}}>
+                {/* Category header row */}
+                <div style={{display:"grid",gridTemplateColumns:"110px 1fr 36px",gap:8,
+                  alignItems:"center",padding:"10px 12px",background:"var(--gray-50)",
+                  borderBottom:`1px solid var(--gray-100)`}}>
+                  <input
+                    value={cat.value}
+                    placeholder="Code (e.g. TPS)"
+                    onChange={e=>setCat({value:e.target.value})}
+                    style={{...inp,fontSize:13,padding:"5px 8px",boxSizing:"border-box",
+                      fontWeight:700,background:"#fff"}} />
+                  <input
+                    value={cat.label}
+                    placeholder="Label (e.g. TPS – Treatment Planning System)"
+                    onChange={e=>setCat({label:e.target.value})}
+                    style={{...inp,fontSize:13,padding:"5px 8px",boxSizing:"border-box",background:"#fff"}} />
+                  <button onClick={removeCat} title="Remove category"
+                    style={{padding:"5px 9px",background:"var(--red-light)",color:"var(--red-dark)",
+                      border:"1px solid #FFBDAD",borderRadius:4,cursor:"pointer",fontSize:16,
+                      lineHeight:1,alignSelf:"center"}}>×</button>
+                </div>
+
+                {/* Sub-category rows */}
+                <div style={{padding:"10px 12px"}}>
+                  {(cat.subs||[]).length>0&&(
+                    <div style={{display:"grid",gridTemplateColumns:"80px 1fr 1fr 36px",gap:8,
+                      marginBottom:6,fontSize:11,fontWeight:700,color:"var(--gray-500)",
+                      textTransform:"uppercase",letterSpacing:"0.05em",padding:"0 2px"}}>
+                      <span>Sub-Cat</span>
+                      <span>Description</span>
+                      <span>Key-Models (comma-separated)</span>
+                      <span></span>
+                    </div>
+                  )}
+                  {(cat.subs||[]).map((sub,si)=>(
+                    <div key={si} style={{display:"grid",gridTemplateColumns:"80px 1fr 1fr 36px",gap:8,
+                      marginBottom:6,alignItems:"center"}}>
+                      <input
+                        value={sub.value}
+                        placeholder="WF"
+                        onChange={e=>setSub(si,{value:e.target.value})}
+                        style={{...inp,fontSize:13,padding:"5px 8px",boxSizing:"border-box"}} />
+                      <input
+                        value={sub.description||""}
+                        placeholder="Brief definition of this sub-category…"
+                        onChange={e=>setSub(si,{description:e.target.value})}
+                        style={{...inp,fontSize:13,padding:"5px 8px",boxSizing:"border-box",
+                          background:"#FFFAE6",borderColor:"#FFE380"}} />
+                      <input
+                        value={(sub.items||[]).join(", ")}
+                        placeholder="Item1, Item2, Item3"
+                        onChange={e=>{
+                          const items=e.target.value.split(",").map(s=>s.trimStart());
+                          setSub(si,{items});
+                        }}
+                        style={{...inp,fontSize:13,padding:"5px 8px",boxSizing:"border-box"}} />
+                      <button onClick={()=>removeSub(si)} title="Remove sub-category"
+                        style={{padding:"4px 8px",background:"var(--red-light)",color:"var(--red-dark)",
+                          border:"1px solid #FFBDAD",borderRadius:4,cursor:"pointer",fontSize:14,
+                          lineHeight:1}}>×</button>
+                    </div>
                   ))}
+                  <button onClick={addSub}
+                    style={{marginTop:4,padding:"4px 12px",background:"var(--blue-light)",
+                      color:"var(--blue-dark)",border:"1px solid #B3D4FF",borderRadius:4,
+                      fontSize:12,fontWeight:600,cursor:"pointer"}}>
+                    + Add Sub-category
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
 
-      <div style={{textAlign:"center",paddingBottom:24}}><SaveBtn size={15} /></div>
     </div>
   );
 }
@@ -1194,7 +1608,6 @@ function App() {
     !!d.category&&!!d.subCategory&&d.problemStatement.length>=10&&!!d.conditionClause,
     !!d.hardwareConfig&&((d.noPreconditions&&!!d.noPreconditionsExp)||(!d.noPreconditions&&!!d.preconditions))&&!!d.initialState&&d.steps.filter(s=>s.trim()).length>=2,
     !!d.expectedBehavior&&!!d.actualBehavior,
-    !!(d.screenshots||d.videos||d.logs||d.testIds),
     true, // traceability optional
     d.searchDone&&!!d.dupOutcome&&d.dupOutcome!=="open_match",
     true,
@@ -1214,7 +1627,6 @@ function App() {
     <StepSummary d={d} set={set} />,
     <StepPreconditions d={d} set={set} />,
     <StepExpAct d={d} set={set} />,
-    <StepEvidence d={d} set={set} />,
     <StepTrace d={d} set={set} />,
     <StepDupSearch d={d} set={set} />,
     <StepReview d={d} onSubmit={handleSubmit} submitting={submitting} />,
@@ -1232,7 +1644,7 @@ function App() {
       {/* Header */}
       <div style={{background:"#0052CC",padding:"10px 20px",display:"flex",alignItems:"center",
         gap:12,boxShadow:"0 2px 4px rgba(0,0,0,0.2)",flexWrap:"wrap"}}>
-        <span style={{color:"#fff",fontWeight:800,fontSize:16}}>🔬 SQA Bug Gate</span>
+        <span style={{color:"#fff",fontWeight:800,fontSize:16}}>🔬 Software Bug Gate</span>
         <span style={{color:"rgba(255,255,255,0.6)",fontSize:13}}>noahmed.atlassian.net · Project SW</span>
         <span style={{flex:1}}/>
         <button onClick={()=>{setView("wizard");setSubmitted(false);}} style={navBtn(view==="wizard","#0065FF")}>Wizard</button>
@@ -1259,9 +1671,9 @@ function App() {
             <div style={{background:"#fff",border:"1px solid var(--gray-100)",borderRadius:4,
               padding:40,textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.08)"}}>
               <div style={{fontSize:52,marginBottom:14}}>✅</div>
-              <h2 style={{color:"var(--green)",margin:"0 0 8px"}}>SQA Bug Created in SW</h2>
+              <h2 style={{color:"var(--green)",margin:"0 0 8px"}}>Software Bug Created in SW</h2>
               <p style={{fontSize:16,color:"var(--gray-700)"}}>
-                <strong>{createdKey}</strong> passes the SQA gate.
+                <strong>{createdKey}</strong> passes the Software gate.
               </p>
               <a href={browseUrl(createdKey)} target="_blank"
                 style={{display:"inline-block",margin:"8px 0 14px",padding:"9px 20px",
@@ -1279,7 +1691,7 @@ function App() {
           ) : (
             <>
               <div style={{marginBottom:4}}>
-                <h2 style={{margin:0,color:"var(--gray-900)"}}>New SQA Bug</h2>
+                <h2 style={{margin:0,color:"var(--gray-900)"}}>New Software Bug</h2>
                 <p style={{margin:"2px 0 12px",color:"var(--gray-500)",fontSize:13}}>
                   noahmed.atlassian.net · Project <strong>SW</strong> · All mandatory sections must pass before submission.
                 </p>
@@ -1309,7 +1721,7 @@ function App() {
             <h3 style={{margin:"0 0 2px",color:"var(--gray-900)"}}>
               Issue: {view==="panel_fail"?"SW-4901":"SW-4812"}
             </h3>
-            <p style={{margin:0,fontSize:12,color:"var(--gray-500)"}}>SQA Gate panel · right sidebar on the Jira issue view</p>
+            <p style={{margin:0,fontSize:12,color:"var(--gray-500)"}}>Software Gate panel · right sidebar on the Jira issue view</p>
           </div>
           <div style={{background:"#fff",border:"1px solid var(--gray-100)",borderRadius:4,
             boxShadow:"0 1px 3px rgba(0,0,0,0.06)"}}>
